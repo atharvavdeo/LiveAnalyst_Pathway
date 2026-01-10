@@ -1,71 +1,60 @@
-# Live Social Analyst 🤖🌍
-### The Pulse of the Internet, Decoded by AI.
+# Live Social Analyst
 
 **Live Social Analyst** is a high-performance, hybrid RAG (Retrieval-Augmented Generation) engine that aggregates real-time news, social media streams, and historical data to provide instant, context-aware intelligence.
 
-Designed with a **"Verge-style" editorial aesthetic**, it turns raw noise into structured narratives.
+## System Architecture
 
+The system is architected around the **Pathway Data Stream**, a high-throughput ingestion layer that enables the system to process live information with sub-second latency while maintaining deep historical context.
+
+### 1. Pathway Data Stream (Ingestion Layer)
+The Pathway Data Stream acts as the central nervous system for data, managing parallel ingestion pipelines from diverse high-velocity sources:
+- **NewsAPI Streams**: Captures global breaking news and specific topic streams (e.g., "Fun/Viral" stream) in real-time.
+- **GNews Historical Bridge**: Provides on-demand access to a 3-year archive for deep context on geopolitical and economic queries.
+- **Social Firehose**: Ingests rapid-fire sentiment data from Reddit and HackerNews.
+- **Firecrawl Targeted Scraper**: Executes precision deep-web scraping for specific URLs or semantic targets.
+
+All incoming data is normalized instantaneously into a unified schema within the Pathway Data Stream before being routed to the storage layer.
+
+### 2. Hybrid Data Storage
+The architecture utilizes a tiered storage strategy to optimize for both freshness and persistence:
+- **Hot Storage (In-Memory)**: The Live Stream buffer holds the most recent data points in memory for immediate access by the RAG engine.
+- **Cold Storage (SQLite)**: High-value articles and historical search results are persisted to a relational database for long-term trend analysis and auditability.
+
+### 3. The Hybrid RAG Pipeline
+Every user query triggers a sophisticated retrieval pipeline designed to maximize relevance and accuracy:
+
+#### A. Vector Embedding & Indexing
+Incoming items from the Pathway Data Stream are embedded using `sentence-transformers/all-MiniLM-L6-v2`, creating a 384-dimensional vector representation. These vectors are indexed in **ChromaDB (In-Memory)**, enabling semantic search capabilities that go beyond simple keyword matching.
+
+#### B. Context Construction Algorithm
+The RAG engine constructs the context window for the LLM using a multi-factor ranking algorithm:
+1.  **Freshness Filter**: Prioritizes live data items (less than 5 minutes old) for real-time queries.
+2.  **Semantic Vector Search**: Retrieves items that are conceptually related to the query, even without exact keyword matches.
+3.  **Keyword Boosting**: Ensures items with exact name matches are included to prevent hallucination.
+4.  **Fallback Mechanism**: Automatically triggers secondary data providers (e.g., NewsAPI fallback) if primary historical sources yield insufficient data.
+
+### 4. LLM Synthesis
+The constructed context is processed by **Gemini 1.5 Pro** (or **Llama 3 via Groq**) to generate the final intelligence output. The LLM synthesizes the retrieval set into an Executive Summary and verified Key Findings, citing specific sources from the data stream.
+
+---
+
+## App Previews
+
+### Landing Page
+A minimalist entry point featuring a 3D data visualization and architectural overview.
 ![Landing Page](preview_landing.png)
 
----
+### The Dashboard
+The main interface featuring the real-time Pathway Data Stream and Bento-grid layout.
+![Dashboard Architecture](preview_arch.png)
 
-## 🏗️ System Architecture
-
-Our architecture is designed for **speed**, **freshness**, and **depth**. It combines immediate live streams with deep historical archives using a custom Hybrid RAG pipeline.
-
-### 1. Multi-Source Ingestion 📡
-The system runs parallelized ingestion streams (`ingest/`) that normalize data from diverse sources into a unified schema:
-- **NewsAPI (Everything & Headlines)**: Captures global breaking news and viral pop-culture ("Fun Stream").
-- **GNews (Historical)**: Provides on-demand access to 1000+ days of historical context for geopolitical queries.
-- **Reddit & HackerNews**: Monitors social sentiment and tech discourse in real-time.
-- **Firecrawl**: A precision scraper for retrieving deep-web content from specific URLs.
-
-### 2. Hybrid Data Storage 💾
-We utilize a dual-layer storage strategy to balance latency and persistence:
-- **Hot Storage (In-Memory Deque)**: Stores the last 100-200 live items for sub-millisecond retrieval. Used for the "Live Tick" feed.
-- **Cold Storage (SQLite)**: Persists high-value articles and user search history for long-term trend analysis.
-
-### 3. The RAG Pipeline 🧠
-Every user query triggers our advanced `pipeline/gemini_rag.py`:
-
-#### A. Vector Embedding
-Incoming items are dynamically embedded using `sentence-transformers/all-MiniLM-L6-v2`. This creates a 384-dimensional semantic map of the current news landscape.
-
-#### B. Semantic Indexing (ChromaDB)
-We use **ChromaDB (In-Memory)** to index these vectors. This allows the system to understand that "Kremlin" is semantically related to "Russia" and "oil tariffs", retrieving relevant items even if they don't share exact keywords.
-
-#### C. Hybrid Context Construction
-The context window sent to the LLM is constructed using a weighted algorithm:
-1.  **Freshness Filter**: Prioritizes items < 5 minutes old for live queries.
-2.  **Keyword Match (BM25)**: Ensures exact matches (e.g., proper nouns) are included.
-3.  **Vector Match**: Pulls in conceptually related items from the wider context.
-4.  **Fallback Mechanism**: If GNews returns 0 results (e.g., for niche geopolitical topics), the system automatically falls back to NewsAPI's `everything` endpoint to ensure coverage.
-
-### 4. LLM Synthesis 🤖
-The constructed context is sent to **Gemini 1.5 Pro** (or **Llama 3 via Groq** as a robust fallback). The LLM acts as an "Editor-in-Chief", synthesizing disparate facts into:
-- **Executive Summary**: A concise 2-3 sentence overview.
-- **Key Findings**: Bulleted verification of facts.
-- **Reliability Score**: Assessing the credibility of sources.
+### Intelligent Search
+The Hybrid RAG analysis view showing synthesized intelligence and reliability scoring.
+![Search Analysis](preview_search.png)
 
 ---
 
-## 📸 App Previews
-
-### 1. The Landing Page
-A minimalist, editorial-style entry point featuring a 3D Earth visualization (`cobe`) and architecture breakdown.
-![Landing](preview_landing.png)
-
-### 2. The Dashboard (Architecture)
-The main interface features a Bento-grid layout, real-time "Internet Curiosities" stream, and live log monitoring.
-![Architecture](preview_arch.png)
-
-### 3. AI Search
-Glassmorphism-styled search analysis showing the Hybrid RAG engine in action (LLM Summary + Source Citations).
-![Search](preview_search.png)
-
----
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Python 3.10+
@@ -73,28 +62,26 @@ Glassmorphism-styled search analysis showing the Hybrid RAG engine in action (LL
 
 ### Installation
 ```bash
-# Clone the repo
+# Clone the repository
 git clone https://github.com/YourRepo/LiveSocialAnalyst.git
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### Run
+### Running the Application
 ```bash
 # Start the FastAPI server (Backend + Frontend)
 python app_pathway.py
 ```
-Access the App at `http://localhost:8000/`.
+Access the application at `http://localhost:8000/`.
 
 ---
 
-## 🛠️ Tech Stack
-- **Backend**: FastAPI, Python 3.11
-- **AI/ML**: Google Gemini, Groq (Llama 3), ChromaDB, Sentence-Transformers
-- **Frontend**: Vanilla JS, HTML5, CSS Variables (Verge Theme)
-- **3D Visuals**: Cobe (WebGL Globe)
-
----
-
-**Powered by Pathway Intelligence.**
+## Tech Stack
+- **Backend Frameowrk**: FastAPI
+- **Language**: Python 3.11
+- **LLM Orchestration**: Google Gemini, Groq (Llama 3)
+- **Vector Database**: ChromaDB
+- **Embeddings**: Sentence-Transformers
+- **Frontend**: Native JS, HTML5, CSS Variables
