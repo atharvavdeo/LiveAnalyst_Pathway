@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LiveSocialAnalyst — Surreal Intelligence</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --white: #ffffff;
@@ -100,10 +103,23 @@
         }
 
         @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(20px, -30px) scale(1.05); }
-            50% { transform: translate(-10px, 20px) scale(0.95); }
-            75% { transform: translate(30px, 10px) scale(1.02); }
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            25% {
+                transform: translate(20px, -30px) scale(1.05);
+            }
+
+            50% {
+                transform: translate(-10px, 20px) scale(0.95);
+            }
+
+            75% {
+                transform: translate(30px, 10px) scale(1.02);
+            }
         }
 
         .container {
@@ -321,9 +337,12 @@
         }
 
         @media (max-width: 900px) {
-            .content-grid, .stats-grid {
+
+            .content-grid,
+            .stats-grid {
                 grid-template-columns: 1fr;
             }
+
             .hero h1 {
                 font-size: 38px;
             }
@@ -432,9 +451,17 @@
             color: var(--text-muted);
         }
 
-        .sentiment-positive { color: var(--accent-emerald); }
-        .sentiment-neutral { color: var(--accent-amber); }
-        .sentiment-negative { color: var(--accent-rose); }
+        .sentiment-positive {
+            color: var(--accent-emerald);
+        }
+
+        .sentiment-neutral {
+            color: var(--accent-amber);
+        }
+
+        .sentiment-negative {
+            color: var(--accent-rose);
+        }
 
         .keywords-container {
             display: flex;
@@ -630,8 +657,17 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.9); }
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.9);
+            }
         }
 
         .status-label {
@@ -673,16 +709,276 @@
             animation: bounce 1.4s infinite ease-in-out both;
         }
 
-        .loading-text span:nth-child(1) { animation-delay: -0.32s; }
-        .loading-text span:nth-child(2) { animation-delay: -0.16s; }
-        .loading-text span:nth-child(3) { animation-delay: 0s; }
+        .loading-text span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .loading-text span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        .loading-text span:nth-child(3) {
+            animation-delay: 0s;
+        }
 
         @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* ============ AI ANALYSIS OUTPUT STYLES ============ */
+        .ai-output {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        /* Section Headers */
+        .ai-output .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 28px 0 16px 0;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, var(--lavender) 0%, var(--rose) 100%);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .ai-output .section-header:first-child {
+            margin-top: 0;
+        }
+
+        .ai-output .section-header.summary {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+        }
+
+        .ai-output .section-header.sources {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+
+        .ai-output .section-header.findings {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        }
+
+        .ai-output .section-header.reliability {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
+
+        .ai-output .section-header.conclusion {
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+        }
+
+        .ai-output .section-header .icon {
+            font-size: 20px;
+        }
+
+        /* Styled Tables */
+        .ai-output table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 16px 0 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            background: var(--white);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .ai-output thead {
+            background: linear-gradient(135deg, var(--accent-violet), var(--accent-rose));
+        }
+
+        .ai-output th {
+            padding: 14px 16px;
+            text-align: left;
+            color: white;
+            font-weight: 500;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ai-output td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .ai-output tr:last-child td {
+            border-bottom: none;
+        }
+
+        .ai-output tbody tr:hover {
+            background: var(--off-white);
+        }
+
+        .ai-output td a {
+            color: var(--accent-violet);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .ai-output td a:hover {
+            text-decoration: underline;
+        }
+
+        /* Reliability Badges in Tables */
+        .ai-output .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .ai-output .badge-high {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+        }
+
+        .ai-output .badge-medium {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+        }
+
+        .ai-output .badge-low {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+        }
+
+        /* Finding Cards */
+        .ai-output .finding-card {
+            background: var(--off-white);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin: 12px 0;
+            border-left: 4px solid var(--accent-violet);
+            transition: all 0.3s ease;
+        }
+
+        .ai-output .finding-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ai-output .finding-card strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Reliability Breakdown */
+        .ai-output .reliability-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .ai-output .reliability-item {
+            background: var(--off-white);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .ai-output .reliability-item .emoji {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .ai-output .reliability-item .label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .ai-output .reliability-item .count {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Conclusion Box */
+        .ai-output .conclusion-box {
+            background: linear-gradient(135deg, var(--lavender) 0%, var(--sky) 100%);
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .ai-output .conclusion-box p {
+            color: var(--text-primary);
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        /* Powered By Footer */
+        .ai-output .powered-by {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .ai-output .powered-by span {
+            background: linear-gradient(135deg, var(--accent-violet), var(--accent-rose));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        /* URL Links */
+        .ai-output a {
+            color: var(--accent-violet);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .ai-output a:hover {
+            text-decoration: underline;
+        }
+
+        /* Bullet Points */
+        .ai-output ul {
+            list-style: none;
+            padding: 0;
+            margin: 16px 0;
+        }
+
+        .ai-output li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 12px;
+        }
+
+        .ai-output li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent-violet);
+            font-weight: bold;
         }
     </style>
 </head>
+
 <body>
     <!-- Surreal floating orbs -->
     <div class="floating-orbs">
@@ -711,7 +1007,8 @@
         <!-- Search -->
         <section class="search-section">
             <div class="search-container">
-                <input type="text" class="search-input" id="topic-input" placeholder="What would you like to explore today?">
+                <input type="text" class="search-input" id="topic-input"
+                    placeholder="What would you like to explore today?">
                 <button class="search-btn" id="analyze-btn" onclick="analyzeTopic()">Analyze</button>
             </div>
         </section>
@@ -848,11 +1145,11 @@
         // Update time
         function updateTime() {
             const now = new Date();
-            document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
-                hour12: true 
+                hour12: true
             });
         }
         setInterval(updateTime, 1000);
@@ -882,7 +1179,7 @@
                 const sourceClass = isNews ? 'news' : 'hackernews';
                 const sourceIcon = isNews ? '📰' : '🔶';
                 const text = (item.text || '').substring(0, 120) + (item.text?.length > 120 ? '...' : '');
-                
+
                 return `
                     <div class="feed-item">
                         <div class="feed-source ${sourceClass}">${sourceIcon}</div>
@@ -902,22 +1199,22 @@
                 setStatus('news', 'loading', '...');
                 const response = await fetch(API_BASE + '/data');
                 const data = await response.json();
-                
+
                 const newsItems = data.news || [];
                 const hnItems = data.hackernews || [];
-                
+
                 document.getElementById('news-count').innerHTML = `${data.total_news || 0} <span>articles</span>`;
                 document.getElementById('hn-count').innerHTML = `${data.total_hackernews || 0} <span>stories</span>`;
-                
+
                 const allItems = [
-                    ...newsItems.map(item => ({...item, source: 'News'})),
-                    ...hnItems.map(item => ({...item, source: 'HackerNews'}))
+                    ...newsItems.map(item => ({ ...item, source: 'News' })),
+                    ...hnItems.map(item => ({ ...item, source: 'HackerNews' }))
                 ];
-                
+
                 updateFeed(allItems);
                 setStatus('news', 'ok', 'Connected');
                 setStatus('hn', 'ok', 'Connected');
-                
+
                 return allItems;
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -943,7 +1240,7 @@
             const emoji = document.getElementById('sentiment-emoji');
             const label = document.getElementById('sentiment-label');
             const desc = document.getElementById('sentiment-desc');
-            
+
             if (mood === 'POSITIVE' || mood === 'EXCITED') {
                 emoji.textContent = '😊';
                 label.textContent = 'Positive';
@@ -966,7 +1263,7 @@
         function updateKeywords(topic) {
             const container = document.getElementById('keywords');
             const words = topic.split(/\s+/).slice(0, 5).filter(w => w.length > 2);
-            container.innerHTML = words.map(w => 
+            container.innerHTML = words.map(w =>
                 `<span class="keyword-tag">#${w.replace(/[^a-zA-Z0-9]/g, '')}</span>`
             ).join('');
         }
@@ -980,50 +1277,118 @@
             document.getElementById('community-sources').textContent = totalCount - newsCount;
         }
 
+        // Parse AI markdown output to beautiful HTML
+        function parseAIOutput(markdown) {
+            let html = markdown;
+
+            // Convert markdown tables to styled HTML tables
+            const tableRegex = /\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)/g;
+            html = html.replace(tableRegex, (match, headerRow, bodyRows) => {
+                const headers = headerRow.split('|').map(h => h.trim()).filter(h => h);
+                const rows = bodyRows.trim().split('\n').map(row =>
+                    row.split('|').map(c => c.trim()).filter(c => c)
+                );
+
+                let tableHtml = '<table><thead><tr>';
+                headers.forEach(h => tableHtml += `<th>${h}</th>`);
+                tableHtml += '</tr></thead><tbody>';
+
+                rows.forEach(row => {
+                    tableHtml += '<tr>';
+                    row.forEach(cell => {
+                        // Style reliability badges
+                        let styledCell = cell
+                            .replace(/✅\s*(HIGH|VERIFIED)/gi, '<span class="badge badge-high">✅ Verified</span>')
+                            .replace(/🔶\s*(MEDIUM|COMMUNITY)/gi, '<span class="badge badge-medium">🔶 Community</span>')
+                            .replace(/⚠️?\s*(LOW|UNVERIFIED)/gi, '<span class="badge badge-low">⚠️ Unverified</span>');
+
+                        // Make URLs clickable
+                        styledCell = styledCell.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">🔗 Link</a>');
+
+                        tableHtml += `<td>${styledCell}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+                tableHtml += '</tbody></table>';
+                return tableHtml;
+            });
+
+            // Convert section headers with proper styling
+            html = html.replace(/##\s*📊\s*(.+)/g, '<div class="section-header summary"><span class="icon">📊</span>$1</div>');
+            html = html.replace(/##\s*📰\s*(.+)/g, '<div class="section-header sources"><span class="icon">📰</span>$1</div>');
+            html = html.replace(/##\s*🔍\s*(.+)/g, '<div class="section-header findings"><span class="icon">🔍</span>$1</div>');
+            html = html.replace(/##\s*📈\s*(.+)/g, '<div class="section-header reliability"><span class="icon">📈</span>$1</div>');
+            html = html.replace(/##\s*💡\s*(.+)/g, '<div class="section-header conclusion"><span class="icon">💡</span>$1</div>');
+            html = html.replace(/##\s*(.+)/g, '<div class="section-header"><span class="icon">📋</span>$1</div>');
+
+            // Convert bullet points with findings to styled cards
+            html = html.replace(/- \*\*(.+?)\*\*:\s*(.+)/g, '<div class="finding-card"><strong>$1</strong>: $2</div>');
+            html = html.replace(/- \*\*(.+?)\*\*\s*(.+)/g, '<div class="finding-card"><strong>$1</strong> $2</div>');
+
+            // Convert remaining bullet points
+            html = html.replace(/^- (.+)$/gm, '<div class="finding-card">$1</div>');
+
+            // Bold text
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+            // Italic text
+            html = html.replace(/_\[(.+?)\]_/g, '<div class="powered-by"><span>$1</span></div>');
+            html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+
+            // Convert URLs to clickable links
+            html = html.replace(/(?<![">])(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>');
+
+            // Convert newlines to breaks (for remaining text)
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = html.replace(/\n/g, '<br>');
+
+            // Wrap in container
+            return `<div class="ai-output"><p>${html}</p></div>`;
+        }
+
         // Analyze topic
         async function analyzeTopic() {
             const input = document.getElementById('topic-input');
             const btn = document.getElementById('analyze-btn');
             const topic = input.value.trim() || 'latest technology news';
-            
+
             btn.disabled = true;
             btn.textContent = 'Analyzing...';
             setStatus('llm', 'loading', 'Processing...');
-            
+
             document.getElementById('analysis-result').innerHTML = `
                 <div class="loading-text" style="justify-content: center; display: flex;">
                     <span>●</span><span>●</span><span>●</span>
                 </div>
                 <p style="text-align: center; color: var(--text-muted); margin-top: 12px;">Analyzing ${topic}...</p>
             `;
-            
+
             try {
                 await fetchData();
-                
+
                 const response = await fetch(API_BASE + '/query', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        query: `Analyze the current situation regarding: ${topic}. What are the key developments, reliability of sources, and overall sentiment?` 
+                    body: JSON.stringify({
+                        query: `Analyze the current situation regarding: ${topic}. What are the key developments, reliability of sources, and overall sentiment?`
                     })
                 });
-                
+
                 const result = await response.json();
                 questionCount++;
                 document.getElementById('question-count').innerHTML = `${questionCount} <span>total</span>`;
-                
+
                 if (result.answer) {
                     const answer = result.answer;
-                    document.getElementById('analysis-result').innerHTML = `
-                        <div class="analysis-result">${answer.replace(/\n/g, '<br>')}</div>
-                    `;
-                    
+                    // Use the beautiful markdown parser
+                    document.getElementById('analysis-result').innerHTML = parseAIOutput(answer);
+
                     const sources = result.sources_analyzed || {};
                     const newsCount = sources.news || 0;
                     const totalCount = sources.total || 1;
-                    
+
                     updateReliability(newsCount, totalCount);
-                    
+
                     // Determine sentiment
                     let mood = 'NEUTRAL';
                     let percent = 50;
@@ -1034,10 +1399,10 @@
                     } else if (answer.match(/panic|crisis|urgent|emergency|severe/i)) {
                         mood = 'PANIC'; percent = 15;
                     }
-                    
+
                     updateSentiment(mood, percent);
                     updateKeywords(topic);
-                    
+
                     setStatus('llm', 'ok', 'Ready');
                 } else if (result.error) {
                     throw new Error(result.error);
@@ -1268,14 +1633,14 @@
                 "Presentation tools",
                 "Collaboration software"
             ];
-            
+
             const totalQuestions = 203;
             console.log(`Starting auto-test with ${totalQuestions} questions...`);
-            
+
             for (let i = 0; i < totalQuestions; i++) {
                 const question = questions[i % questions.length] + (i >= questions.length ? ` (round ${Math.floor(i / questions.length) + 1})` : '');
                 document.getElementById('topic-input').value = question;
-                
+
                 try {
                     await analyzeTopic();
                     console.log(`Question ${i + 1}/${totalQuestions} completed: ${question}`);
@@ -1285,7 +1650,7 @@
                     console.error(`Question ${i + 1} failed:`, error);
                 }
             }
-            
+
             console.log('Auto-test complete!');
             alert(`Completed ${totalQuestions} questions! Check the console for details.`);
         }
@@ -1293,15 +1658,15 @@
         // Initialize
         setInterval(fetchData, 30000);
         fetchData();
-        
+
         // Enter key to analyze
-        document.getElementById('topic-input').addEventListener('keypress', function(e) {
+        document.getElementById('topic-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') analyzeTopic();
         });
-        
+
         // Expose runAutoTest to window for manual triggering
         window.runAutoTest = runAutoTest;
-        
+
         // Add a subtle button to run auto test
         const autoTestBtn = document.createElement('button');
         autoTestBtn.textContent = '🧪 Run 203 Questions Test';
@@ -1325,4 +1690,5 @@
         document.body.appendChild(autoTestBtn);
     </script>
 </body>
+
 </html>

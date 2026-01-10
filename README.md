@@ -2,7 +2,69 @@
 
 Real-time news and social media analysis powered by **Pathway's streaming framework** with AI-powered reliability scoring.
 
-![LiveSocialAnalyst UI](https://raw.githubusercontent.com/atharvavdeo/LiveAnalyst_Pathway/main/preview.png)
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           LiveSocialAnalyst                                  │
+│                         Pathway + FastAPI Hybrid                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+        ┌───────────────────────────┼───────────────────────────┐
+        ▼                           ▼                           ▼
+┌───────────────┐          ┌───────────────┐          ┌───────────────┐
+│  📰 NewsData  │          │  🔶 HackerNews │          │  🌐 Frontend  │
+│     API       │          │      API       │          │   (HTML/JS)   │
+│  (Official)   │          │  (Community)   │          │  Surreal UI   │
+└───────┬───────┘          └───────┬───────┘          └───────┬───────┘
+        │                          │                          │
+        └──────────────┬───────────┘                          │
+                       ▼                                      │
+        ┌──────────────────────────┐                          │
+        │   🔄 Pathway Streaming   │                          │
+        │      Worker Thread       │                          │
+        │  ┌────────────────────┐  │                          │
+        │  │ Real-time Ingest   │  │                          │
+        │  │ • 2-min intervals  │  │                          │
+        │  │ • Deque storage    │  │                          │
+        │  └────────────────────┘  │                          │
+        └──────────────┬───────────┘                          │
+                       ▼                                      │
+        ┌──────────────────────────┐                          │
+        │  📊 Reliability Scoring  │                          │
+        │  ┌────────────────────┐  │                          │
+        │  │ ✅ News = HIGH     │  │                          │
+        │  │ 🔶 HN = MEDIUM     │  │                          │
+        │  │ ⚠️ Social = LOW    │  │                          │
+        │  └────────────────────┘  │                          │
+        └──────────────┬───────────┘                          │
+                       ▼                                      │
+        ┌──────────────────────────┐                          │
+        │   🧠 LLM RAG Query       │◄─────────────────────────┘
+        │  ┌────────────────────┐  │      POST /query
+        │  │ Context Builder    │  │
+        │  │ (25 recent items)  │  │
+        │  └────────┬───────────┘  │
+        │           ▼              │
+        │  ┌────────────────────┐  │
+        │  │ OpenAI GPT-4o-mini │  │
+        │  │        OR          │  │
+        │  │ Groq Llama 3.3     │  │
+        │  │   (Fallback)       │  │
+        │  └────────────────────┘  │
+        └──────────────┬───────────┘
+                       ▼
+        ┌──────────────────────────┐
+        │  📋 Structured Output    │
+        │  ┌────────────────────┐  │
+        │  │ • Analysis Summary │  │
+        │  │ • Sources Table    │  │
+        │  │ • Key Findings     │  │
+        │  │ • Reliability %    │  │
+        │  │ • Conclusion       │  │
+        │  └────────────────────┘  │
+        └──────────────────────────┘
+```
 
 ## ✨ Features
 
@@ -44,31 +106,36 @@ Then open http://localhost:8000
 | GROQ_API_KEY | ✅ | https://console.groq.com/keys (FREE) |
 | OPENAI_API_KEY | Optional | https://platform.openai.com |
 
-## 📁 Architecture
+## 📁 Project Structure
 
 ```
+LiveAnalyst_Pathway/
 ├── app_pathway.py       # Main Pathway + FastAPI hybrid app
-├── frontend/index.html  # Surreal white UI
-├── ingest/              # Data ingestion streams
+├── frontend/
+│   └── index.html       # Surreal white UI with styled AI output
+├── ingest/              # Data ingestion modules
 │   ├── hackernews_stream.py
 │   └── news_api.py
 ├── pipeline/            # Processing pipeline
 │   ├── reliability.py   # Source scoring
-│   └── rag.py
-└── requirements.txt
+│   └── rag.py           # RAG implementation
+├── .env.example         # Environment template
+├── requirements.txt     # Python dependencies
+└── README.md
 ```
 
 ## 📖 How It Works
 
-1. **Pathway Streaming Worker** continuously fetches news + HackerNews
-2. **Data is scored** for reliability (news=high, HN=medium)
-3. **User queries** trigger RAG against streamed context
-4. **AI generates** structured analysis with source tables
+1. **Pathway Streaming Worker** continuously fetches news + HackerNews (2-min intervals)
+2. **Data is scored** for reliability (news=HIGH, HN=MEDIUM)
+3. **User queries** trigger RAG against 25 most recent items
+4. **AI generates** structured analysis with source tables and reliability breakdowns
+5. **Frontend renders** beautiful styled output with gradient headers and cards
 
 ## 🧪 203 Questions Test
 
-Click the "Run 203 Questions Test" button to benchmark the system.
+Click the "Run 203 Questions Test" button to benchmark the system with automated queries.
 
 ---
 
-Built with ❤️ using Pathway, FastAPI, and Groq
+Built with ❤️ using **Pathway**, **FastAPI**, **Groq**, and **Llama 3.3**
