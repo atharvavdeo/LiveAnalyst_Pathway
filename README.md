@@ -6,6 +6,31 @@
 
 The system is architected around the **Pathway Data Stream**, a high-throughput ingestion layer that enables the system to process live information with sub-second latency while maintaining deep historical context.
 
+### Architecture Diagram
+```mermaid
+graph TD
+    User[User Frontend] -->|Polls| API[FastAPI Backend]
+    User -->|Query| RAG[RAG Pipeline]
+
+    subgraph "Pathway Data Stream (Ingestion)"
+        NewsAPI[NewsAPI.org] -->|Live Stream| Buffer[In-Memory Deque]
+        GNews[GNews.io] -->|Live Stream| Buffer
+        Social["HackerNews/Reddit"] -->|Live Stream| Buffer
+        Firecrawl["Firecrawl (Web)"] -->|On-Demand| VectorStore
+    end
+
+    subgraph "Persistence & Search"
+        Buffer -->|Batch Write| SQL[SQLite Database]
+        RAG -->|Context| VectorStore[ChromaDB]
+        RAG -->|History| SQL
+    end
+
+    subgraph "AI Synthesis"
+        VectorStore -->|Relevant Context| LLM["Gemini/Groq"]
+        LLM -->|Answer| API
+    end
+```
+
 ### 1. Pathway Data Stream (Ingestion Layer)
 The Pathway Data Stream acts as the central nervous system for data, managing parallel ingestion pipelines from diverse high-velocity sources:
 - **NewsAPI Streams**: Captures global breaking news and specific topic streams (e.g., "Fun/Viral" stream) in real-time.
