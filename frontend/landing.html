@@ -4,236 +4,441 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LiveSocialAnalyst | Pathway AI</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap"
+    <title>Live Social Analyst | Architecture</title>
+    <!-- GOOGLE FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Poltawski+Nowy:ital,wght@0,500;0,700;1,500&display=swap"
         rel="stylesheet">
-    <!-- Three.js & GSAP -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/ScrollTrigger.min.js"></script>
 
     <style>
+        /* --- VERGE / OUTLINE THEME --- */
         :root {
-            --orange: #C86B42;
-            --dark-green: #0F2021;
-            --text-light: #F4F4F4;
-        }
+            --bg-color: #f8f9fa;
+            --text-main: #111;
+            --text-muted: #555;
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            /* Accents */
+            --accent-pink: #e21c90;
+            /* Verge Pink */
+            --accent-pathway: #00b85c;
+            /* Pathway Green */
+            --accent-dark: #000;
+            /* Stark Black */
+
+            --border-color: #e0e0e0;
+            --font-main: 'Inter', sans-serif;
+            --font-serif: 'Poltawski Nowy', serif;
+            /* Editorial Font */
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: #050505;
-            color: var(--text-light);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 0;
             overflow-x: hidden;
         }
 
-        /* NAVBAR */
+        /* --- NAVBAR --- */
         nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 100;
-            background: rgba(5, 5, 5, 0.5);
+            padding: 1.5rem 5%;
+            border-bottom: 2px solid var(--text-main);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .logo {
-            font-family: 'DM Serif Display', serif;
-            font-size: 24px;
-            color: var(--orange);
+            font-family: var(--font-main);
+            font-weight: 900;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logo span {
+            color: var(--accent-pink);
         }
 
         .nav-links {
             display: flex;
-            gap: 24px;
-            align-items: center;
+            gap: 2.5rem;
         }
 
         .nav-link {
+            color: var(--text-main);
             text-decoration: none;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
-            transition: 0.3s;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            transition: color 0.2s;
         }
 
         .nav-link:hover {
-            color: var(--white);
+            color: var(--accent-pink);
         }
 
-        .btn-launch {
-            background: var(--orange);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 14px;
-            transition: 0.3s;
+        /* Hover Line */
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 3px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--accent-dark);
+            transition: width 0.3s ease;
         }
 
-        .btn-launch:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(200, 107, 66, 0.4);
+        .nav-link:hover::after {
+            width: 100%;
         }
 
-        /* HERO SECTION */
+        /* --- HERO SECTION (SPLIT) --- */
         .hero {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 4rem 5% 0;
+            /* Reduced bottom padding */
+            max-width: 1400px;
+            margin: 0 auto;
+            border-bottom: 3px solid var(--accent-pathway);
+            /* Branding line */
             position: relative;
             overflow: hidden;
+
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            align-items: center;
+            min-height: 80vh;
         }
 
-        #canvas-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
+        .hero-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-family: var(--font-serif);
+            font-size: 5.5rem;
+            line-height: 0.95;
+            margin-bottom: 2rem;
+            color: var(--text-main);
+            letter-spacing: -1.5px;
+        }
+
+        .hero h1 span {
+            color: var(--accent-pink);
+            font-style: italic;
+        }
+
+        .hero .brand-highlight {
+            color: var(--accent-pathway);
+            display: block;
+            font-size: 1.5rem;
+            font-family: var(--font-main);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.35rem;
+            color: var(--text-muted);
+            max-width: 90%;
+            line-height: 1.5;
+            margin-bottom: 3rem;
+            font-weight: 500;
+        }
+
+        /* --- GLOBE CONTAINER --- */
+        .hero-visual {
+            position: relative;
             height: 100%;
-            z-index: 1;
-        }
-
-        .hero-content {
-            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             z-index: 2;
-            text-align: center;
-            pointer-events: none;
-            /* Let clicks pass to 3D */
-            opacity: 0;
-            /* Animated in */
         }
 
-        h1 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 80px;
-            line-height: 1;
-            margin-bottom: 20px;
-            background: linear-gradient(to right, #ffffff, #aaaaaa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        #cobe {
+            width: 700px;
+            height: 700px;
+            max-width: 100%;
+            opacity: 1;
         }
 
-        p.subtitle {
-            font-size: 20px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 40px;
-        }
-
-        .scroll-indicator {
+        /* --- BACKGROUND WATERMARK --- */
+        .watermark {
             position: absolute;
-            bottom: 40px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            z-index: 2;
-            animation: bounce 2s infinite;
-        }
-
-        /* PARALLAX SECTION */
-        .parallax-section {
-            min-height: 150vh;
-            position: relative;
-            background: linear-gradient(180deg, #050505 0%, #0F2021 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sticky-wrapper {
-            position: relative;
-            /* Changed from sticky for GSAP pinning */
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .info-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 60px;
-            border-radius: 30px;
-            max-width: 800px;
-            text-align: center;
-            position: relative;
-            z-index: 2;
-        }
-
-        .info-card h2 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 48px;
-            margin-bottom: 30px;
-            color: var(--orange);
-        }
-
-        .info-card p {
-            font-size: 18px;
-            line-height: 1.8;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 20px;
-        }
-
-        /* Floating Orbs */
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
+            transform: translate(-50%, -50%) rotate(-10deg);
+            font-family: var(--font-main);
+            font-weight: 900;
+            font-size: 15vw;
+            color: rgba(0, 0, 0, 0.03);
+            white-space: nowrap;
             z-index: 1;
-            opacity: 0.5;
+            pointer-events: none;
+            line-height: 0.8;
+            text-align: center;
         }
 
-        .orb-1 {
-            width: 400px;
-            height: 400px;
-            background: var(--orange);
-            top: 20%;
-            left: 10%;
+        /* --- INFINITE SCROLL PARALLAX --- */
+        .scrolling-wrapper {
+            background: var(--accent-dark);
+            color: white;
+            padding: 1.5rem 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
         }
 
-        .orb-2 {
-            width: 300px;
-            height: 300px;
-            background: #4caf50;
-            bottom: 20%;
-            right: 10%;
+        .scrolling-text {
+            display: inline-block;
+            animation: scroll 30s linear infinite;
+            font-family: var(--font-main);
+            font-weight: 800;
+            font-size: 1.2rem;
+            text-transform: uppercase;
         }
 
-        @keyframes bounce {
+        .scrolling-text span {
+            margin: 0 3rem;
+            opacity: 0.7;
+        }
 
-            0%,
+        .scrolling-text span:hover {
+            opacity: 1;
+            color: var(--accent-pink);
+            cursor: default;
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+
             100% {
-                transform: translate(-50%, 0);
-                opacity: 0.5;
-            }
-
-            50% {
-                transform: translate(-50%, 10px);
-                opacity: 1;
+                transform: translateX(-50%);
             }
         }
 
+        /* --- ARCHITECTURE GRID --- */
+        .arch-section {
+            padding: 6rem 5%;
+            background: var(--bg-color);
+        }
+
+        .section-title {
+            font-family: var(--font-main);
+            font-weight: 900;
+            font-size: 3rem;
+            margin-bottom: 4rem;
+            text-transform: uppercase;
+            color: var(--accent-dark);
+            display: inline-block;
+            border-bottom: 6px solid var(--accent-pink);
+        }
+
+        .arch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .arch-card {
+            background: white;
+            border: 2px solid var(--text-main);
+            padding: 2rem;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 5px 5px 0px var(--text-muted);
+        }
+
+        .arch-card:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 8px 8px 0px var(--accent-pink);
+            border-color: var(--accent-pink);
+        }
+
+        .step-num {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--bg-alt);
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            z-index: 0;
+        }
+
+        .arch-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .arch-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--accent-dark);
+            font-family: var(--font-main);
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .arch-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .code-tag {
+            display: inline-block;
+            background: var(--bg-alt);
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--accent-pink);
+            margin-top: 5px;
+        }
+
+        /* --- VERGE LIGHT FOOTER --- */
+        .verge-footer {
+            background: white;
+            color: black;
+            padding: 4rem 5% 2rem;
+            border-top: 3px solid black;
+            font-family: var(--font-main);
+        }
+
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .footer-logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+        }
+
+        .footer-logo span {
+            color: var(--accent-pink);
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid black;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: black;
+            transition: all 0.2s;
+        }
+
+        .social-btn:hover {
+            background: black;
+            color: white;
+            border-color: black;
+        }
+
+        /* Primary Nav (Bold) */
+        .footer-nav-primary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 2rem;
+        }
+
+        .footer-nav-primary a {
+            color: black;
+            text-decoration: none;
+        }
+
+        .footer-nav-primary a:hover {
+            color: var(--accent-pink);
+            text-decoration: underline;
+        }
+
+        /* Secondary Nav (Small) */
+        .footer-nav-secondary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .footer-nav-secondary a {
+            color: #444;
+            text-decoration: none;
+        }
+
+        .footer-nav-secondary a:hover {
+            color: black;
+            text-decoration: underline;
+        }
+
+        .copyright-block {
+            font-size: 0.75rem;
+            color: #888;
+            font-family: monospace;
+            text-transform: uppercase;
+            margin-top: 3rem;
+        }
+
+        .vox-media {
+            font-weight: bold;
+            text-decoration: underline;
+            color: black;
+        }
+
+        /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
-            h1 {
-                font-size: 48px;
+            .hero h1 {
+                font-size: 3rem;
             }
 
-            .info-card {
-                max-width: 90%;
-                padding: 30px;
+            .nav-links {
+                display: none;
+            }
+
+            .arch-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -241,184 +446,307 @@
 
 <body>
 
-    <!-- NAV -->
+    <!-- NAVBAR -->
     <nav>
-        <div class="logo">LiveSocialAnalyst</div>
+        <a href="/" class="logo">
+            <span>Pathway</span>Analyst
+        </a>
         <div class="nav-links">
-            <a href="https://github.com" target="_blank" class="nav-link">GitHub</a>
-            <a href="/app" class="btn-launch">Launch App →</a>
+            <a href="#" class="nav-link">About Us</a>
+            <a href="#" class="nav-link">Our Partners</a>
+            <a href="https://github.com/YourRepo" class="nav-link">GitHub</a>
+            <a href="/app" class="nav-link" style="color: var(--accent-pink);">Read</a>
+            <a href="/app" class="nav-link">Search 🔍</a>
         </div>
     </nav>
 
-    <!-- HERO WITH 3D WORLD -->
+    <!-- HERO -->
     <section class="hero">
-        <div id="canvas-container"></div>
-        <div class="hero-content">
-            <h1>Global Pulse<br>Real-Time.</h1>
-            <p class="subtitle">Secure AI Analysis on Live Data Streams</p>
+        <div class="watermark">
+            PATHWAY<br>INTELLIGENCE
         </div>
-        <div class="scroll-indicator">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                <path d="M7 10l5 5 5-5z" />
-            </svg>
+
+        <div class="hero-text">
+            <span class="brand-highlight">Powered by Pathway</span>
+            <h1>Understanding<br>the <span>Machine</span>.</h1>
+            <p>
+                We don't just scrape the web. We build a living, breathing context window for AI.
+                Here is exactly how our hybrid RAG architecture processes the world in real-time.
+            </p>
+        </div>
+
+        <div class="hero-visual">
+            <canvas id="cobe" width="700" height="700"></canvas>
         </div>
     </section>
 
-    <!-- WHAT WE DO -->
-    <section class="parallax-section">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
+    <!-- INFINITE SCROLL -->
+    <div class="scrolling-wrapper">
+        <div class="scrolling-text">
+            <span>The Verge</span>
+            <span>TechCrunch</span>
+            <span>BBC News</span>
+            <span>Reddit</span>
+            <span>Hacker News</span>
+            <span>Bloomberg</span>
+            <span>New York Times</span>
+            <span>Reuters</span>
+            <span>Google News</span>
+            <span>Wired</span>
+            <span>Ars Technica</span>
+            <!-- Duplicated for smooth loop -->
+            <span>The Verge</span>
+            <span>TechCrunch</span>
+            <span>BBC News</span>
+            <span>Reddit</span>
+            <span>Hacker News</span>
+            <span>Bloomberg</span>
+            <span>New York Times</span>
+            <span>Reuters</span>
+            <span>Google News</span>
+            <span>Wired</span>
+            <span>Ars Technica</span>
+        </div>
+    </div>
 
-        <div class="sticky-wrapper" id="pin-container">
-            <div class="info-card" id="info-box">
-                <h2>Our Mission</h2>
-                <p>
-                    LiveSocialAnalyst harnesses the power of <strong>Pathway's Live Data Framework</strong> to monitor
-                    the heartbeat of the globe.
-                    We ingest simultaneous streams from NewsData, GNews, Reddit, HackerNews, and Firecrawl into a
-                    unified, high-speed Python/Rust engine.
-                </p>
-                <p>
-                    Unlike traditional batch processors, our RAG pipeline continuously synthesizes new information,
-                    offering AI-powered insights that evolve second-by-second.
-                    Experience the future of social intelligence.
-                </p>
-                <a href="/app" class="btn-launch" style="margin-top: 20px; display: inline-block;">Enter Dashboard</a>
+    <!-- ARCHITECTURE GRID -->
+    <section class="arch-section">
+        <span class="section-title">The Architecture</span>
+
+        <div class="arch-grid">
+            <!-- Step 1 -->
+            <div class="arch-card">
+                <span class="step-num">01</span>
+                <div class="arch-content">
+                    <h3>Multi-Source Ingestion</h3>
+                    <p>Parallel streams connect to NewsAPI, GNews, Reddit, and Firecrawl. Data is normalized
+                        instantaneously.</p>
+                    <span class="code-tag">ingest/stream.py</span>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="arch-card">
+                <span class="step-num">02</span>
+                <div class="arch-content">
+                    <h3>Hybrid Data Store</h3>
+                    <p>Live items are held in an in-memory Deque for speed, while standard news is persisted to SQLite
+                        for history.</p>
+                    <span class="code-tag">data/database.py</span>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="arch-card">
+                <span class="step-num">03</span>
+                <div class="arch-content">
+                    <h3>Vector Embedding</h3>
+                    <p>Incoming items are embedded using <span style="color:var(--accent-pink)">all-MiniLM-L6-v2</span>
+                        to create a 384-dimensional semantic map.</p>
+                    <span class="code-tag">pipeline/vector_store.py</span>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="arch-card">
+                <span class="step-num">04</span>
+                <div class="arch-content">
+                    <h3>Semantic Indexing</h3>
+                    <p>We use ChromaDB (In-Memory) to index these vectors, allowing for search by "meaning" rather than
+                        just keywords.</p>
+                    <span class="code-tag">chromadb</span>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="arch-card">
+                <span class="step-num">05</span>
+                <div class="arch-content">
+                    <h3>Freshness Filtering</h3>
+                    <p>The RAG pipeline strictly filters for items < 5 minutes old for live events, while allowing
+                            historical context for searches.</p>
+                            <span class="code-tag">filter_fresh_items()</span>
+                </div>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="arch-card">
+                <span class="step-num">06</span>
+                <div class="arch-content">
+                    <h3>Context Construction</h3>
+                    <p>We assemble a Hybrid Context: Top Keyword Matches + Top Vector Matches + Freshness Snapshot.</p>
+                    <span class="code-tag">pipeline/gemini_rag.py</span>
+                </div>
+            </div>
+
+            <!-- Step 7 -->
+            <div class="arch-card">
+                <span class="step-num">07</span>
+                <div class="arch-content">
+                    <h3>LLM Synthesis</h3>
+                    <p>Gemini 1.5 (or Llama 3 via Groq) analyzes the context to generate an executive summary and key
+                        findings.</p>
+                    <span class="code-tag">query_gemini()</span>
+                </div>
+            </div>
+
+            <!-- Step 8 -->
+            <div class="arch-card">
+                <span class="step-num">08</span>
+                <div class="arch-content">
+                    <h3>Client Hydration</h3>
+                    <p>FastAPI streams the JSON response to the Bento-Grid UI, rendering news cards and AI insights in
+                        milliseconds.</p>
+                    <span class="code-tag">app_pathway.py</span>
+                </div>
             </div>
         </div>
     </section>
 
-    <script>
-        // 1. THREE.JS 3D EARTH
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    <!-- VERGE STYLE FOOTER -->
+    <footer class="verge-footer">
+        <!-- Top Row: Logo + Socials -->
+        <div class="footer-top">
+            <div class="footer-logo">
+                <span>Live</span>SocialAnalyst
+            </div>
+            <div class="social-icons">
+                <!-- SVG Icons for minimal look -->
+                <a href="#" class="social-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                    </svg>
+                </a>
+                <a href="#" class="social-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                    </svg>
+                </a>
+                <a href="#" class="social-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29.07 29.07 0 0 0 1 11.75a29.07 29.07 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z">
+                        </path>
+                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                    </svg>
+                </a>
+                <a href="#" class="social-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 11a9 9 0 0 1 9 9"></path>
+                        <path d="M4 4a16 16 0 0 1 16 16"></path>
+                        <circle cx="5" cy="19" r="1"></circle>
+                    </svg>
+                </a>
+            </div>
+        </div>
 
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        <!-- Middle Row: Bold Links -->
+        <div class="footer-nav-primary">
+            <a href="/app">Contact</a>
+            <a href="/app">Tip Us</a>
+            <a href="/app">Community Guidelines</a>
+            <a href="https://blogposts.framer.wiki">About</a>
+            <a href="/app">Ethics Statement</a>
+            <a href="/app">Review Process</a>
+        </div>
 
-        // Wireframe Sphere
-        const geometry = new THREE.IcosahedronGeometry(10, 2);
-        const material = new THREE.MeshBasicMaterial({
-            color: 0x444444,
-            wireframe: true,
-            transparent: true,
-            opacity: 0.3
-        });
-        const sphere = new THREE.Mesh(geometry, material);
-        scene.add(sphere);
+        <!-- Bottom Row: Secondary Links -->
+        <div class="footer-nav-secondary">
+            <a href="#">Manage Privacy Settings</a>
+            <a href="#">Terms of Use</a>
+            <a href="#">Privacy Notice</a>
+            <a href="#">Cookie Policy</a>
+            <a href="#">Licensing FAQ</a>
+            <a href="#">Accessibility</a>
+            <a href="#">Platform Status</a>
+        </div>
 
-        // Core Sphere (Dark)
-        const coreGeo = new THREE.SphereGeometry(9.5, 32, 32);
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
-        const core = new THREE.Mesh(coreGeo, coreMat);
-        scene.add(core);
+        <!-- Copyright -->
+        <div class="copyright-block">
+            © 2026 <span class="vox-media">LIVE ANALYST MEDIA</span>, LLC. ALL RIGHTS RESERVED
+        </div>
+    </footer>
 
-        // Orbiting Particles
-        const particlesGeo = new THREE.BufferGeometry();
-        const particlesCount = 200;
-        const posArray = new Float32Array(particlesCount * 3);
-
-        for (let i = 0; i < particlesCount * 3; i++) {
-            posArray[i] = (Math.random() - 0.5) * 25;
-        }
-        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        const particlesMat = new THREE.PointsMaterial({
-            size: 0.05,
-            color: 0xC86B42,
-            transparent: true,
-            opacity: 0.8
-        });
-        const particles = new THREE.Points(particlesGeo, particlesMat);
-        scene.add(particles);
-
-        camera.position.z = 15;
-
-        // Animation Loop
-        function animate() {
-            requestAnimationFrame(animate);
-            sphere.rotation.y += 0.002;
-            particles.rotation.y -= 0.001;
-            particles.rotation.x += 0.0005;
-
-            // Mouse Parallax (Subtle)
-            camera.position.x += (mouseX - camera.position.x) * 0.05;
-            camera.position.y += (-mouseY - camera.position.y) * 0.05;
-            camera.lookAt(scene.position);
-
-            renderer.render(scene, camera);
-        }
-
-        let mouseX = 0;
-        let mouseY = 0;
-        window.addEventListener('mousemove', (e) => {
-            mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
-            mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
-        });
-
-        // Intro Animation with GSAP
-        gsap.to(sphere.scale, { x: 1, y: 1, z: 1, duration: 2, ease: "power3.out", startAt: { x: 0, y: 0, z: 0 } });
-        gsap.to(".hero-content", { opacity: 1, y: 0, duration: 1.5, delay: 0.5, ease: "power3.out", startAt: { y: 50 } });
-
-        animate();
-
-        // Handle Resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // 2. GSAP SCROLLTEXT
-        gsap.registerPlugin(ScrollTrigger);
-
-        // Pin the text box while orbs move
-        gsap.to(".sticky-wrapper", {
-            scrollTrigger: {
-                trigger: ".parallax-section",
-                start: "top top",
-                end: "+=100%",
-                pin: true,
-                scrub: true
-            }
-        });
-
-        // Move Orbs
-        gsap.to(".orb-1", {
-            y: 200,
-            x: 100,
-            scrollTrigger: {
-                trigger: ".parallax-section",
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 1
-            }
-        });
-
-        gsap.to(".orb-2", {
-            y: -200,
-            x: -100,
-            scrollTrigger: {
-                trigger: ".parallax-section",
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 1
-            }
-        });
-
-        // Reveal text
-        gsap.from(".info-card", {
-            y: 100,
-            opacity: 0,
-            scrollTrigger: {
-                trigger: ".parallax-section",
-                start: "top 60%",
-                end: "top 40%",
-                scrub: 1
-            }
-        });
-
-    </script>
 </body>
 
+<!-- COBE GLOBE SCRIPT -->
+<script type="module">
+    import createGlobe from 'https://cdn.skypack.dev/cobe';
+
+    const canvas = document.getElementById("cobe");
+
+    // Configuration matching user request
+    let phi = 0;
+    let theta = 0.25;
+    const autoRotateSpeed = 0.003;
+
+    /* Interactive State */
+    let pointerInteracting = null;
+    let pointerInteractionMovement = 0;
+    let mouseX = 0;
+    let mouseY = 0;
+
+    const globe = createGlobe(canvas, {
+        devicePixelRatio: 2,
+        width: 700 * 2,
+        height: 700 * 2,
+        phi: 0,
+        theta: 0.25,
+        dark: 0,
+        scale: 1,
+        diffuse: 1.2,
+        mapSamples: 60000,
+        mapBrightness: 6,
+        baseColor: [1, 1, 1],
+        markerColor: [0, 0.72, 0.36], // Green Markers for Pathway
+        glowColor: [0.9, 0.9, 0.9],
+        opacity: 1,
+        offset: [0, 0],
+        markers: [
+            // Add some dummy markers for visual interest if needed
+            { location: [37.7595, -122.4367], size: 0.05 }, // SF
+            { location: [40.7128, -74.0060], size: 0.05 }, // NYC
+            { location: [51.5074, -0.1278], size: 0.05 }, // London
+            { location: [19.0760, 72.8777], size: 0.05 }, // Mumbai
+            { location: [35.6762, 139.6503], size: 0.05 }, // Tokyo
+        ],
+        onRender: (state) => {
+            // Interactive Rotation
+            if (!pointerInteracting) {
+                phi += autoRotateSpeed;
+            }
+
+            state.phi = phi + pointerInteractionMovement;
+            state.theta = theta;
+        },
+    });
+
+    // Mouse/Touch Interaction
+    canvas.addEventListener('pointerdown', (e) => {
+        pointerInteracting = e.clientX - pointerInteractionMovement;
+        canvas.style.cursor = 'grabbing';
+    });
+
+    canvas.addEventListener('pointerup', () => {
+        pointerInteracting = null;
+        canvas.style.cursor = 'grab';
+    });
+
+    canvas.addEventListener('pointerout', () => {
+        pointerInteracting = null;
+        canvas.style.cursor = 'grab';
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+        if (pointerInteracting !== null) {
+            const delta = e.clientX - pointerInteracting;
+            pointerInteractionMovement = delta * 0.005;
+        }
+    });
+
+</script>
+
 </html>
+```

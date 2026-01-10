@@ -95,7 +95,7 @@ def search_historical(query: str, days: int = 1000) -> list:
         "token": API_KEY,
         "q": query,
         "lang": LANG,
-        "country": COUNTRY,
+        # "country": COUNTRY,  <-- REMOVED to allow global search (e.g. India/Russia news)
         "max": 10,
         "sortby": "relevance"
     }

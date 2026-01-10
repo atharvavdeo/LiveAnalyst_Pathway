@@ -63,7 +63,8 @@ def filter_fresh_items(items: list, max_age_seconds: int = 300) -> list:
         
         # Exempt on-demand/historical sources from freshness check
         source = item.get('source', '')
-        if 'historical' in source or 'targeted' in source:
+        category = item.get('category', '')
+        if 'historical' in source or 'targeted' in source or 'newsapi_search' in source or category == 'search_result':
             fresh.append(item)
             continue
             

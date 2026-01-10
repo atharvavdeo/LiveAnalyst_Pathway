@@ -4,19 +4,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The News | AI Analyst</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap"
+    <title>Live Social Analyst | The Verge Edition</title>
+
+    <!-- Fonts: Outfit (Bold Headers) & Inter (Clean Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800;900&display=swap"
         rel="stylesheet">
+
     <style>
         :root {
-            --orange: #C86B42;
-            --dark-green: #0F2021;
-            --text-dark: #0A1818;
-            --text-grey: #666666;
-            --white: #FFFFFF;
-            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --bg-body: #ffffff;
+            --text-main: #000000;
+            --text-muted: #555555;
+            --accent-gradient: linear-gradient(135deg, #FF0055 0%, #FF00CC 100%);
+            /* Hot Pink/Purple */
+            --accent-solid: #FF0055;
+            --border-heavy: 3px solid #000000;
+            --border-light: 1px solid #e5e5e5;
+            --font-head: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
         }
 
+        /* --- RESET & BASE --- */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -24,643 +35,781 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--orange) 0%, var(--dark-green) 100%);
-            color: var(--text-dark);
-            min-height: 100vh;
-            padding: 40px;
-            overflow-y: auto;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            border-top: 8px solid var(--text-main);
+            /* Top heavy bar */
         }
 
-        /* CONTAINER */
-        .container {
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* --- LAYOUT GRID --- */
+        .page-container {
+            display: grid;
+            grid-template-columns: 80px 1fr 350px;
+            /* Sidebar Title | Main Feed | Right Column */
             max-width: 1400px;
             margin: 0 auto;
+            min-height: 100vh;
         }
 
-        /* HEADER */
-        header {
+        @media (max-width: 1100px) {
+            .page-container {
+                grid-template-columns: 60px 1fr;
+            }
+
+            .right-col {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sticky-title-bar {
+                display: none;
+            }
+        }
+
+        /* --- LEFT STICKY BAR ("Free to read") --- */
+        .sticky-title-bar {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            background: var(--text-main);
+            color: white;
+            padding: 40px 10px;
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 40px;
-            color: var(--white);
+            justify-content: flex-start;
+            /* Starts from top because rotated */
+            z-index: 10;
         }
 
-        .back-btn {
-            background: var(--white);
-            color: var(--text-dark);
-            width: 48px;
-            height: 48px;
+        /* --- MAIN FEED AREA --- */
+        .main-feed {
+            padding: 40px;
+            border-right: var(--border-light);
+        }
+
+        header.feed-header {
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: var(--border-heavy);
+            padding-bottom: 20px;
+        }
+
+        h1.section-title {
+            font-family: var(--font-head);
+            font-size: 3.5rem;
+            line-height: 0.9;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            /* Standard */
+            -webkit-text-fill-color: transparent;
+        }
+
+        .category-pill {
+            background: var(--text-main);
+            color: white;
+            padding: 8px 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .category-pill:hover {
+            transform: scale(1.05);
+        }
+
+        /* --- FEATURED HERO --- */
+        .hero-article {
+            margin-bottom: 60px;
+            cursor: pointer;
+        }
+
+        .hero-image-wrap {
+            width: 100%;
+            height: 450px;
+            background: #eee;
+            margin-bottom: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero-image-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .hero-article:hover .hero-image-wrap img {
+            transform: scale(1.03);
+        }
+
+        .hero-content h2 {
+            font-family: var(--font-head);
+            font-size: 3rem;
+            line-height: 1.05;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 80%;
+            line-height: 1.6;
+        }
+
+        .meta-line {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-solid);
+            text-transform: uppercase;
+        }
+
+        /* --- STANDARD FEED LIST --- */
+        .feed-list {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .feed-item {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 25px;
+            border-bottom: var(--border-light);
+            padding-bottom: 30px;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .feed-item:hover h3 {
+            color: var(--accent-solid);
+        }
+
+        .feed-thumb {
+            width: 200px;
+            height: 130px;
+            background: #f0f0f0;
+            overflow: hidden;
+        }
+
+        .feed-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .feed-info h3 {
+            font-family: var(--font-head);
+            font-size: 1.8rem;
+            line-height: 1.1;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .feed-info p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            /* Standard */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* --- RIGHT COLUMN (MOST POPULAR) --- */
+        .right-col {
+            background: #f9f9f9;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Search Box */
+        .search-box {
+            margin-bottom: 40px;
+            border-bottom: 4px solid var(--text-main);
+            padding-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            border: 2px solid #ccc;
+            padding: 15px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-solid);
+        }
+
+        .sidebar-title {
+            font-family: var(--font-head);
+            font-size: 4rem;
+            line-height: 0.8;
+            margin-bottom: 40px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--text-main);
+            writing-mode: vertical-rl;
+            float: left;
+            margin-right: 20px;
+            height: 400px;
+            text-align: right;
+            transform: rotate(180deg);
+        }
+
+        /* Simpler sidebar */
+        .sidebar-header {
+            font-family: var(--font-head);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            border-bottom: 4px solid var(--accent-solid);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+
+        .popular-list {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .popular-item {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .index-circle {
+            background: var(--accent-solid);
+            color: white;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            border: none;
-            transition: var(--transition);
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            margin-top: 5px;
         }
 
-        .back-btn:hover {
-            transform: scale(1.1);
+        .popular-info h4 {
+            font-family: var(--font-head);
+            font-size: 1.1rem;
+            line-height: 1.3;
+            font-weight: 700;
         }
 
-        h1 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 42px;
-            font-weight: 400;
-        }
-
-        /* SEARCH BAR */
-        .search-container {
-            position: relative;
-            margin-bottom: 40px;
-            width: 100%;
-            max-width: 600px;
-        }
-
-        #search-input {
-            width: 100%;
-            padding: 20px 24px;
-            border-radius: 30px;
-            border: none;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            color: var(--white);
-            font-size: 16px;
-            font-family: 'Inter', sans-serif;
-            transition: var(--transition);
-        }
-
-        #search-input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        #search-input:focus {
-            background: var(--white);
-            color: var(--text-dark);
-            outline: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        /* AI INSIGHT CARD */
-        #ai-insight {
-            background: var(--white);
-            border-radius: 24px;
-            padding: 30px;
-            margin-bottom: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            display: none;
-            /* Hidden by default */
-            animation: slideDown 0.5s ease-out forwards;
-        }
-
-        #ai-insight h2 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 28px;
-            margin-bottom: 12px;
-            color: var(--orange);
-        }
-
-        #ai-insight .content {
-            font-size: 16px;
-            line-height: 1.6;
-            color: var(--text-dark);
-        }
-
-        #ai-content h3 {
-            font-size: 16px;
+        .popular-info span {
+            font-size: 0.8rem;
+            color: #888;
             font-weight: 600;
-            margin: 20px 0 10px 0;
-            color: var(--text-grey);
             text-transform: uppercase;
         }
 
-        .summary-box {
-            background: #F8F9FA;
-            padding: 15px;
-            border-radius: 12px;
-            border-left: 4px solid var(--orange);
-            margin-bottom: 20px;
-            font-size: 15px;
-            line-height: 1.5;
-        }
-
-        .findings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .finding-card {
-            background: #FFFFFF;
-            border: 1px solid #EEEEEE;
-            padding: 12px;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            font-size: 14px;
-            transition: var(--transition);
-        }
-
-        .finding-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-color: var(--orange);
-        }
-
-        .source-row {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            background: #FAFAFA;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-
-        .source-row a {
-            margin-left: auto;
-            color: var(--orange);
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .source-name {
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-right: 10px;
-            min-width: 80px;
-        }
-
-        /* BENTO GRID */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-        }
-
-        .card {
+        /* --- STARTUP MODAL (LIGHT VERSION) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 24px;
-            height: 400px;
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition);
-            opacity: 0;
-            animation: fadeIn 0.6s ease-out forwards;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-        }
-
-        .mini-box {
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 12px;
-            transition: var(--transition);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .mini-box:hover {
-            background: #FFFFFF;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border-color: var(--orange);
-        }
-
-        .mini-box::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 12px;
-            bottom: 12px;
-            width: 3px;
-            background: #E0E0E0;
-            border-radius: 0 4px 4px 0;
-            transition: var(--transition);
-        }
-
-        .mini-box:hover::before {
-            background: var(--orange);
-        }
-
-        /* Staggered Animation Delays */
-        .card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .card:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .card:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .card:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        .card:nth-child(5) {
-            animation-delay: 0.5s;
-        }
-
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        .card-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(200, 107, 66, 0.1);
-            border-radius: 12px;
+            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 12px;
-            color: var(--orange);
+            transition: opacity 0.5s ease;
         }
 
-        svg {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
+        .modal-card {
+            background: white;
+            padding: 50px;
+            border: 4px solid black;
+            max-width: 900px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 20px 20px 0px rgba(0, 0, 0, 0.1);
         }
 
-        .card-title {
-            font-size: 18px;
+        .modal-card h2 {
+            font-family: var(--font-head);
+            font-size: 3rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
         }
 
-        .count-badge {
-            margin-left: auto;
-            background: var(--text-dark);
-            color: var(--white);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+        .modal-card p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 40px;
         }
 
-        .scroll-area {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 5px;
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
         }
 
-        /* Custom Scrollbar */
-        .scroll-area::-webkit-scrollbar {
-            width: 4px;
+        .cat-btn {
+            background: white;
+            border: 2px solid black;
+            padding: 15px;
+            font-family: var(--font-head);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .scroll-area::-webkit-scrollbar-thumb {
-            background: #E0E0E0;
-            border-radius: 4px;
+        .cat-btn:hover {
+            background: black;
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 5px 5px 0px var(--accent-solid);
         }
 
-        .item {
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #F0F0F0;
-            transition: var(--transition);
+        /* --- FUN STREAM SECTION --- */
+        .fun-stream-section {
+            padding: 80px 40px;
+            border-top: 8px solid black;
+            text-align: center;
+            background: white;
+            min-height: 400px;
         }
 
-        .item:last-child {
-            border-bottom: none;
+        .fun-header {
+            font-family: var(--font-head);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 40px;
+            color: var(--text-muted);
         }
 
-        .item:hover {
-            transform: translateX(4px);
+        .fun-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 2.5;
         }
 
-        .item a {
-            text-decoration: none;
-            color: var(--text-dark);
-            font-weight: 600;
-            font-size: 14px;
-            line-height: 1.5;
-            display: block;
-            margin-bottom: 8px;
+        .fun-link {
+            font-family: var(--font-head);
+            font-size: 2.5rem;
+            line-height: 1.6;
+            color: black;
+            text-decoration: underline wavy var(--accent-solid);
+            text-underline-offset: 8px;
+            margin: 0 15px;
+            cursor: pointer;
+            transition: color 0.2s;
         }
 
-        .item-meta {
-            font-size: 12px;
-            color: var(--text-grey);
-            display: flex;
-            justify-content: space-between;
+        .fun-link:hover {
+            color: var(--accent-solid);
         }
 
-        /* SPANNING */
-        .span-2 {
-            grid-column: span 2;
+        .fun-img {
+            display: inline-block;
+            height: 60px;
+            width: auto;
+            vertical-align: middle;
+            border: 2px solid black;
+            margin: 0 10px;
+            transition: transform 0.3s;
         }
 
-        /* ANIMATION KEYFRAMES */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 1024px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-
-            .span-2 {
-                grid-column: span 1;
-            }
+        .fun-img:hover {
+            transform: scale(1.2) rotate(10deg);
+            z-index: 10;
+            position: relative;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="container">
-        <header>
-            <button class="back-btn">←</button>
-            <h1>The News</h1>
-            <div style="width: 48px;"></div> <!-- Spacer for center alignment -->
-        </header>
-
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Search keywords or Ask AI..."
-                onkeyup="handleSearch(event)">
-        </div>
-
-        <!-- AI ANSWER SECTION -->
-        <div id="ai-insight">
-            <h2>AI Insight</h2>
-            <div id="ai-content" class="content">Testing AI...</div>
-        </div>
-
-        <h2
-            style="color:white; margin-bottom:20px; font-family:'DM Serif Display', serif; font-weight:400; font-size:28px;">
-            Your Feed</h2>
-
-        <div class="grid">
-            <!-- 1. GNEWS -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <!-- GLOBE SVG -->
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-                        </svg>
-                    </div>
-                    <span class="card-title">Top Stories</span>
-                    <span class="count-badge" id="count-gnews">0</span>
-                </div>
-                <div class="scroll-area" id="list-gnews"></div>
-            </div>
-
-            <!-- 2. NEWS DATA -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <!-- NEWSPAPER SVG -->
-                        <svg viewBox="0 0 24 24">
-                            <path d="M22 3H2v14h18v4h2V3zm-2 12H4V5h16v10zM6 7h12v2H6zm0 4h12v2H6z" />
-                        </svg>
-                    </div>
-                    <span class="card-title">World Updates</span>
-                    <span class="count-badge" id="count-newsdata">0</span>
-                </div>
-                <div class="scroll-area" id="list-newsdata"></div>
-            </div>
-
-            <!-- 3. FIRECRAWL -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <!-- FIRE SVG -->
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M12 23c6.07 0 11-4.93 11-11S18.07 1 12 1 1 5.93 1 12s4.93 11 11 11zm0-20c4.96 0 9 4.04 9 9s-4.04 9-9 9-9-4.04-9-9 4.04-9 9-9zm.5 14h-1v-4h1v4zm0-6h-1V9h1v2z" />
-                        </svg>
-                    </div>
-                    <span class="card-title">Deep Search</span>
-                    <span class="count-badge" id="count-firecrawl">0</span>
-                </div>
-                <div class="scroll-area" id="list-firecrawl"></div>
-            </div>
-
-            <!-- 4. HACKERNEWS (Span 2) -->
-            <div class="card span-2">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <!-- BOLT SVG -->
-                        <svg viewBox="0 0 24 24">
-                            <path d="M7 2v11h3v9l7-12h-4l4-8z" />
-                        </svg>
-                    </div>
-                    <span class="card-title">Tech Trends</span>
-                    <span class="count-badge" id="count-hackernews">0</span>
-                </div>
-                <div class="scroll-area" id="list-hackernews"></div>
-            </div>
-
-            <!-- 5. REDDIT -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <!-- CHAT SVG -->
-                        <svg viewBox="0 0 24 24">
-                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-                        </svg>
-                    </div>
-                    <span class="card-title">Discussions</span>
-                    <span class="count-badge" id="count-reddit">0</span>
-                </div>
-                <div class="scroll-area" id="list-reddit"></div>
+    <!-- STARTUP MODAL -->
+    <div id="category-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2>Select Your Stream</h2>
+            <p>Choose a focus for your live updates</p>
+            <div class="category-grid">
+                <button class="cat-btn" onclick="selectCategory('Business')">Business</button>
+                <button class="cat-btn" onclick="selectCategory('Technology')">Technology</button>
+                <button class="cat-btn" onclick="selectCategory('Politics')">Politics</button>
+                <button class="cat-btn" onclick="selectCategory('Science')">Science</button>
+                <button class="cat-btn" onclick="selectCategory('Health')">Health</button>
+                <button class="cat-btn" onclick="selectCategory('Entertainment')">Cinema</button>
+                <button class="cat-btn" onclick="selectCategory('Sports')">Sports</button>
+                <button class="cat-btn" onclick="selectCategory('General')">World</button>
+                <button class="cat-btn" onclick="selectCategory('Environment')">Planet</button>
+                <button class="cat-btn" onclick="selectCategory('Food')">Food</button>
             </div>
         </div>
     </div>
 
+    <!-- SEARCH RESULTS MODAL -->
+    <div id="search-modal" class="modal-overlay" style="display:none; opacity:0;">
+        <div class="modal-card" style="max-width: 1000px; height: 80vh; overflow-y: auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 id="search-query-title">Search Results</h2>
+                <button class="cat-btn" onclick="closeSearch()" style="padding: 5px 15px;">X</button>
+            </div>
+            <div id="ai-answer-box"
+                style="background:#f0f0f0; padding:20px; text-align:left; margin-bottom:30px; border-left:4px solid var(--accent-solid);">
+                Loading AI Analysis...
+            </div>
+            <div id="search-results-list" class="feed-list"></div>
+        </div>
+    </div>
+
+    <div class="page-container">
+        <!-- 1. STICKY SIDE TITLE -->
+        <div class="sticky-title-bar">
+            Live Social Analyst // Premium
+        </div>
+
+        <!-- 2. MAIN FEED -->
+        <div class="main-feed">
+            <header class="feed-header">
+                <div>
+                    <h1 class="section-title" id="feed-title">Tech Stream</h1>
+                    <p style="font-weight:600; color:#888;" id="refresh-indicator">Live Updates</p>
+                </div>
+                <div class="category-pill" onclick="location.reload()">Change Topic</div>
+            </header>
+
+            <!-- Hero Article (Dynamically populated first item) -->
+            <div id="hero-container">
+                <!-- JS will inject hero here -->
+            </div>
+
+            <!-- List Feed -->
+            <div id="list-feed" class="feed-list">
+                <!-- JS will inject items here -->
+                <p style="padding:40px; text-align:center; color:#999;">Select a category to load contents...</p>
+            </div>
+        </div>
+
+        <!-- 3. RIGHT COLUMN (Most Popular & Search) -->
+        <div class="right-col">
+            <!-- RESTORED SEARCH FEATURE -->
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search Analysis..."
+                    onkeypress="handleSearch(event)">
+            </div>
+
+            <div class="sidebar-header">Global Pulse</div>
+
+            <div class="popular-list" id="global-updates">
+                <!-- JS Populates -->
+                <p style="color:#999; font-size:0.9rem;">Connecting to global streams...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. FUN STREAM FOOTER -->
+    <div class="fun-stream-section">
+        <div class="fun-header">/// INTERNET CURIOSITIES ///</div>
+        <div class="fun-container" id="fun-feed">
+            <p style="color:#999; font-size:1.5rem;">Summoning the weird...</p>
+        </div>
+    </div>
+
     <script>
-        // CLIENT SIDE FILTER + AI TRIGGER
-        let allItems = []; // Store raw data for filtering
-        let currentQuery = ''; // Keep track of the current search query for re-filtering
+        let currentCategory = "Technology";
 
-        async function handleSearch(event) {
-            const query = event.target.value;
-            currentQuery = query; // Update current query
+        // --- SEARCH LOGIC ---
+        async function handleSearch(e) {
+            if (e.key === 'Enter') {
+                const query = e.target.value;
+                if (!query) return;
 
-            // Client-side filtering on every keystroke
-            applyFilter();
+                // Show Modal
+                const modal = document.getElementById("search-modal");
+                modal.style.display = 'flex';
+                setTimeout(() => { modal.style.opacity = '1'; }, 10);
 
-            // AI Trigger on ENTER
-            if (event.key === 'Enter' && query.length > 3) {
-                await fetchAiResponse(query);
+                document.getElementById("search-query-title").innerText = `Analysis: "${query}"`;
+                document.getElementById("ai-answer-box").innerHTML = "Scanning vectors and live streams...";
+                document.getElementById("search-results-list").innerHTML = "";
+
+                try {
+                    const response = await fetch('/query', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: query })
+                    });
+                    const data = await response.json();
+
+                    // Display AI Answer
+                    let answerText = "No analysis available.";
+                    let sources = [];
+
+                    try {
+                        const parsed = JSON.parse(data.answer);
+                        answerText = parsed.summary || parsed.answer;
+                        sources = parsed.sources || [];
+                    } catch {
+                        answerText = data.answer;
+                    }
+
+                    document.getElementById("ai-answer-box").innerHTML = `<p style='font-size:1.1rem; line-height:1.6;'>${answerText}</p>`;
+
+                    if (sources && sources.length > 0) {
+                        document.getElementById("search-results-list").innerHTML = sources.map(item => `
+                            <div class="feed-item" onclick="window.open('${item.url}', '_blank')">
+                                 <div class="feed-thumb" style="width:100px; height:80px;">
+                                    <img src="${item.image_url || 'https://via.placeholder.com/100'}" alt="Thumb" style="width:100%;height:100%;object-fit:cover;">
+                                </div>
+                                <div class="feed-info">
+                                    <h3 style="font-size:1.2rem;">${item.text || "Source Article"}</h3>
+                                    <div class="meta-line">${item.source} • ${calculateTimeAgo(item.created_utc)}</div>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        document.getElementById("search-results-list").innerHTML = '<p style="text-align:center; padding:20px;">No specific sources found.</p>';
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    document.getElementById("ai-answer-box").innerText = "Search Error.";
+                }
             }
         }
 
-        function applyFilter() {
-            if (!currentQuery) return;
-            const lowerQ = currentQuery.toLowerCase();
-            const domItems = document.querySelectorAll('.item');
-
-            domItems.forEach(item => {
-                const text = item.innerText.toLowerCase();
-                item.style.display = text.includes(lowerQ) ? 'block' : 'none';
-            });
+        function closeSearch() {
+            const modal = document.getElementById("search-modal");
+            modal.style.opacity = '0';
+            setTimeout(() => { modal.style.display = 'none'; }, 500);
         }
 
-        async function fetchAiResponse(query) {
-            const aiCard = document.getElementById('ai-insight');
-            const aiContent = document.getElementById('ai-content');
+        // --- 1. STARTUP LOGIC ---
+        function selectCategory(category) {
+            currentCategory = category;
 
-            aiCard.style.display = 'block';
-            aiContent.innerHTML = '<i>Analyzing live data stream... verify sources... synthesizing...</i>';
+            // Fade out modal
+            const modal = document.getElementById("category-modal");
+            modal.style.opacity = '0';
+            setTimeout(() => { modal.style.display = 'none'; }, 500);
 
+            // Update Header
+            document.getElementById("feed-title").innerText = `${category} Stream`;
+
+            // Load Data (Cache First -> Then Network)
+            loadCategoryData(category);
+
+            // Start polling for side column
+            fetchWorldUpdates();
+            setInterval(fetchWorldUpdates, 60000); // 1 min poll
+
+            // Load Fun Stream after 3000ms
+            setTimeout(loadFunStream, 3000);
+        }
+
+        async function loadFunStream() {
+            const container = document.getElementById("fun-feed");
             try {
-                const res = await fetch('/query', {
+                const response = await fetch('/fetch_news', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: query })
+                    body: JSON.stringify({ category: 'fun' })
                 });
-                const data = await res.json();
+                const result = await response.json();
 
-                // Format Markdown to HTML (Simple regex for Bold/Headers)
-                let parsed;
-                try {
-                    // Try parsing JSON directly
-                    parsed = JSON.parse(data.answer);
-                } catch (e) {
-                    // If parsing fails, try cleaning code blocks
-                    try {
-                        const cleanJson = data.answer.replace(/```json/g, '').replace(/```/g, '').trim();
-                        parsed = JSON.parse(cleanJson);
-                    } catch (e2) {
-                        // FALLBACK: Display raw text if it's not JSON
-                        console.warn("JSON Parse failed, showing raw text", data.answer);
-                        aiContent.innerHTML = `<div class="summary-box" style="border-left-color:red">
-                                                <b>Note:</b> Raw output shown (Formatting failed).<br><br>
-                                                ${data.answer.replace(/\n/g, '<br>')}
-                                               </div>`;
-                        return;
-                    }
+                if (result.items && result.items.length > 0) {
+                    const styles = [
+                        { radius: '50%', rotate: '-10deg' },
+                        { radius: '0%', rotate: '5deg' },
+                        { radius: '10px', rotate: '-5deg' }
+                    ];
+
+                    container.innerHTML = result.items.map((item, i) => {
+                        // Logic: Item Title + Random Inline Image
+                        const style = styles[i % styles.length];
+                        const img = item.image_url || `https://picsum.photos/seed/${i}/100`;
+
+                        return `
+                            <span class="fun-link" onclick="window.open('${item.url}', '_blank')">${item.text}</span>
+                            <img class="fun-img" src="${img}" style="border-radius:${style.radius}; transform:rotate(${style.rotate})" alt="Fun Thumb">
+                        `;
+                    }).join('');
                 }
-
-                // Generate HTML
-                let html = `<h3>Executive Summary</h3>
-                            <div class="summary-box">${parsed.summary}</div>`;
-
-                if (parsed.findings && parsed.findings.length > 0) {
-                    html += `<h3>Key Details</h3><div class="findings-grid">`;
-                    parsed.findings.forEach(f => {
-                        html += `<div class="finding-card">📌 ${f}</div>`;
-                    });
-                    html += `</div>`;
-                }
-
-                if (parsed.sources && parsed.sources.length > 0) {
-                    html += `<h3>Supporting Sources</h3>`;
-                    parsed.sources.forEach(s => {
-                        html += `<div class="source-row">
-                                    <span class="source-name">${s.source}</span>
-                                    <span style="flex:1">${s.headline}</span>
-                                    <a href="${s.url}" target="_blank">Read →</a>
-                                 </div>`;
-                    });
-                }
-
-                html += `<div style="margin-top:15px; font-size:12px; color:#999; text-align:right">Reliability: ${parsed.reliability || 'Unrated'}</div>`;
-
-                aiContent.innerHTML = html;
-
             } catch (e) {
-                aiContent.innerHTML = 'Error connecting to AI Analyst. Please try again.';
+                console.error("Fun stream failed", e);
             }
         }
 
-        function renderList(elementId, items) {
-            const list = document.getElementById(elementId);
-            const countId = elementId.replace('list-', 'count-');
-            document.getElementById(countId).innerText = items.length;
+        async function loadCategoryData(category) {
+            const listContainer = document.getElementById("list-feed");
+            const heroContainer = document.getElementById("hero-container");
+            const storageKey = `news_cache_${category}`;
 
-            if (items.length === 0) {
-                list.innerHTML = '<div style="color:#aaa; text-align:center; padding:20px;">No updates yet</div>';
-                return;
+            const loader = `<p style="text-align:center; padding:40px; font-weight:700; color:#000;">FETCHING FROM NEWSAPI...</p>`;
+
+            // A. Check Local Cache first
+            const cached = localStorage.getItem(storageKey);
+            if (cached) {
+                const data = JSON.parse(cached);
+                renderMainFeed(data);
+                console.log(`📦 Loaded ${data.length} items from cache for ${category}`);
+                document.getElementById("refresh-indicator").innerText = "Refreshing...";
+            } else {
+                listContainer.innerHTML = loader;
             }
 
-            let html = '';
-            [...items].reverse().forEach(item => {
-                const time = new Date(parseFloat(item.created_utc) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                html += `
-                    <div class="item mini-box">
-                        <a href="${item.url}" target="_blank">${item.text}</a>
-                        <div class="item-meta">
-                            <span>${time}</span>
-                            <span>${item.reliability || 'RAW'}</span>
+            // B. Fetch Fresh from Backend
+            try {
+                const response = await fetch('/fetch_news', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category: category.toLowerCase() })
+                });
+                const result = await response.json();
+
+                if (result.items && result.items.length > 0) {
+                    renderMainFeed(result.items);
+                    localStorage.setItem(storageKey, JSON.stringify(result.items)); // Update Cache
+                    document.getElementById("refresh-indicator").innerText = "Live";
+                } else if (!cached) {
+                    listContainer.innerHTML = `<p style="text-align:center; padding:40px;">No recent news found for ${category}.</p>`;
+                }
+            } catch (err) {
+                console.error("Fetch error:", err);
+                if (!cached) listContainer.innerHTML = `<p style="text-align:center; color:red;">Connection Failed.</p>`;
+            }
+        }
+
+        function renderMainFeed(items) {
+            const listContainer = document.getElementById("list-feed");
+            const heroContainer = document.getElementById("hero-container");
+
+            if (!items || items.length === 0) return;
+
+            // 1. Render Hero (First Item)
+            const heroItem = items[0];
+            const heroImage = heroItem.image_url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80';
+
+            heroContainer.innerHTML = `
+                <div class="hero-article" onclick="window.open('${heroItem.url}', '_blank')">
+                    <div class="hero-image-wrap">
+                        <img src="${heroImage}" alt="Hero Image">
+                    </div>
+                    <div class="hero-content">
+                        <h2>${heroItem.text}</h2>
+                        <div class="meta-line">
+                            ${heroItem.source.toUpperCase()} • ${calculateTimeAgo(heroItem.created_utc)}
                         </div>
                     </div>
+                </div>
+            `;
+
+            // 2. Render List (Remaining Items)
+            const listItems = items.slice(1);
+            listContainer.innerHTML = listItems.map(item => {
+                const img = item.image_url || 'https://via.placeholder.com/200x130?text=No+Image';
+                return `
+                <div class="feed-item" onclick="window.open('${item.url}', '_blank')">
+                    <div class="feed-thumb">
+                        <img src="${img}" alt="News Thumb">
+                    </div>
+                    <div class="feed-info">
+                        <h3>${item.text}</h3>
+                        <p>${item.description || "Click to read full coverage..."}</p>
+                        <div class="meta-line" style="margin-top:10px; font-size:0.75rem;">
+                             ${calculateTimeAgo(item.created_utc)}
+                        </div>
+                    </div>
+                </div>
                 `;
-            });
-            list.innerHTML = html;
+            }).join('');
         }
 
-        async function fetchData() {
+        async function fetchWorldUpdates() {
             try {
-                const res = await fetch('/data');
-                const data = await res.json();
+                const response = await fetch('/data');
+                const data = await response.json();
 
-                renderList('list-newsdata', data.newsdata);
-                renderList('list-gnews', data.gnews);
-                renderList('list-firecrawl', data.firecrawl);
-                renderList('list-hackernews', data.hackernews);
-                renderList('list-reddit', data.reddit);
+                // Combine sources for "Global Pulse"
+                const combined = [...(data.gnews || []), ...(data.hackernews || [])];
+                // Shuffle or sort by date
+                combined.sort((a, b) => new Date(b.created_utc) - new Date(a.created_utc));
+                const top5 = combined.slice(0, 5);
 
-                // Re-apply filter after rendering new data
-                if (currentQuery) {
-                    applyFilter();
+                const container = document.getElementById("global-updates");
+                if (top5.length > 0) {
+                    container.innerHTML = top5.map((item, index) => `
+                        <div class="popular-item" onclick="window.open('${item.url}', '_blank')">
+                            <div class="index-circle">${index + 1}</div>
+                            <div class="popular-info">
+                                <h4>${item.text}</h4>
+                                <span>${item.source.split('_')[0]}</span>
+                            </div>
+                        </div>
+                    `).join('');
                 }
-
             } catch (e) {
-                console.error("Fetch error", e);
+                console.error("Polling error", e);
             }
         }
 
-        // Poll every 2 seconds
-        setInterval(fetchData, 2000);
-        fetchData(); // Initial call
+        function calculateTimeAgo(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            if (seconds < 60) return 'Just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            return `${Math.floor(hours / 24)}d ago`;
+        }
     </script>
 </body>
 

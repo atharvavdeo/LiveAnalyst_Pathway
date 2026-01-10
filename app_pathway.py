@@ -13,12 +13,26 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 # Connectors (Classes & Functions)
-from ingest.newsdata_connector import NewsDataConnector
+from ingest.newsapi_connector import NewsApiConnector, fetch_category_newsapi, search_newsapi
 from ingest.gnews_connector import GNewsConnector, search_historical
 from ingest.reddit_stream import RedditConnector
 from ingest.hackernews_stream import HackerNewsConnector
 from ingest.firecrawl_connector import FirecrawlConnector, scrape_targeted
+
+# ... 
+
+# --- NEW ENDPOINT FOR DYNAMIC CATEGORIES ---
+
+
+
+
+# ... (Previous imports match existing file structure)
+
+# --- NEW ENDPOINT FOR DYNAMIC CATEGORIES ---
+
+
 
 # AI Pipeline
 from pipeline.gemini_rag import pathway_rag_query
@@ -76,13 +90,38 @@ def startup():
     print("==================================================")
     
     # Start connector threads
-    threading.Thread(target=run_connector, args=(NewsDataConnector().run(), "newsdata"), daemon=True).start()
+    threading.Thread(target=run_connector, args=(NewsApiConnector().run(), "newsapi"), daemon=True).start()
     threading.Thread(target=run_connector, args=(GNewsConnector().run(), "gnews"), daemon=True).start()
     threading.Thread(target=run_connector, args=(HackerNewsConnector().run(), "hackernews"), daemon=True).start()
     threading.Thread(target=run_connector, args=(RedditConnector().run(), "reddit"), daemon=True).start()
     threading.Thread(target=run_connector, args=(FirecrawlConnector().run(), "firecrawl"), daemon=True).start()
     
     print("✅ All streams active")
+
+# --- NEW ENDPOINT FOR DYNAMIC CATEGORIES ---
+class CategoryRequest(BaseModel):
+    category: str
+
+@app.post("/fetch_news")
+def fetch_news_endpoint(req: CategoryRequest):
+    print(f"📥 Fetching news for category: {req.category}")
+    
+    # 1. Fetch from NewsAPI
+    items = fetch_category_newsapi(req.category)
+    
+    # 2. Persist to DB for future use
+    if items:
+        saved_count = save_articles_batch(items)
+        print(f"💾 Persisted {saved_count} items from category '{req.category}'")
+        
+        # 3. Also add to live data store so it appears in "feed" if needed
+        with data_lock:
+            for item in items:
+                data_store["items"].append(item)
+                
+    return {"items": items}
+
+
 
 @app.get("/")
 def root():
@@ -115,6 +154,11 @@ def query_endpoint(req: QueryRequest):
     if len(req.query) > 3:
         # Trigger GNews Historical Search
         hist_news = search_historical(req.query, days=1000)
+        
+        # FALLBACK: If GNews fails (geo-politics limitation), try NewsAPI
+        if not hist_news:
+            print("⚠️ GNews empty, trying NewsAPI Fallback...")
+            hist_news = search_newsapi(req.query)
         
         # Trigger Firecrawl Targeted Scrape
         web_results = scrape_targeted(req.query)
