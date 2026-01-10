@@ -1,3 +1,5 @@
+# Reddit streaming data source (optional)
+
 import os
 import time
 import pathway as pw
@@ -10,7 +12,6 @@ def reddit_stream():
     client_id = os.getenv("REDDIT_CLIENT_ID")
     client_secret = os.getenv("REDDIT_CLIENT_SECRET")
 
-    # Mock data if no keys provided (SAFE MODE for Demo)
     if not client_id or client_id == "your_reddit_id":
         print("⚠️ No Reddit Keys. Streaming dummy social posts...")
         while True:
@@ -23,7 +24,6 @@ def reddit_stream():
             }
             time.sleep(5)
 
-    # Real Reddit Stream
     reddit = praw.Reddit(
         client_id=client_id,
         client_secret=client_secret,

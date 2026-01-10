@@ -1,3 +1,5 @@
+# Source reliability scoring
+
 import pathway as pw
 
 def calculate_reliability(source: str) -> str:
@@ -8,4 +10,3 @@ def calculate_reliability(source: str) -> str:
     elif source == "x":
         return "Low (Unverified Social Media)"
     return "Unknown"
-

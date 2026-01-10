@@ -1,3 +1,5 @@
+# RAG query setup for Pathway
+
 import pathway as pw
 from pathway.xpacks.llm import answer_with_geometric_rag
 

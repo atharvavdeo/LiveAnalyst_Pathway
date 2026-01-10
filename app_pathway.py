@@ -1,8 +1,4 @@
-"""
-LiveSocialAnalyst - Pathway Framework Integration
-Hybrid application combining Pathway's real-time streaming with FastAPI for the UI.
-Supports OpenAI and Groq as fallback LLM providers.
-"""
+# LiveSocialAnalyst - Pathway streaming + FastAPI + Groq fallback
 
 import os
 import time
@@ -23,15 +19,12 @@ import openai
 
 load_dotenv()
 
-# ============== Configuration ==============
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 NEWSDATA_API_KEY = os.getenv("NEWSDATA_API_KEY")  
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 openai.api_key = OPENAI_API_KEY
 
-# ============== Pathway Data Store ==============
-# This stores the latest data from Pathway streams
 pathway_data = {
     "news": deque(maxlen=100),
     "hackernews": deque(maxlen=100),
@@ -39,9 +32,7 @@ pathway_data = {
 }
 data_lock = threading.Lock()
 
-# ============== Reliability Scoring (Pathway-style) ==============
 def calculate_reliability(source: str) -> dict:
-    """Calculate reliability score for a data source"""
     if source == "news":
         return {"score": "High", "label": "Official News Source", "warning": None}
     elif source == "hackernews":
@@ -50,9 +41,7 @@ def calculate_reliability(source: str) -> dict:
         return {"score": "Low", "label": "Social Media", "warning": "⚠️ Unverified social media content"}
     return {"score": "Unknown", "label": "Unknown Source", "warning": "Source reliability cannot be determined"}
 
-# ============== Pathway-style Data Ingestion ==============
 def fetch_news_stream():
-    """Pathway-compatible news ingestion"""
     if not NEWSDATA_API_KEY or NEWSDATA_API_KEY == "your_newsdata_key_here":
         return [{
             "source": "news",
@@ -84,7 +73,6 @@ def fetch_news_stream():
         return []
 
 def fetch_hackernews_stream():
-    """Pathway-compatible HackerNews ingestion"""
     try:
         top_url = "https://hacker-news.firebaseio.com/v0/topstories.json"
         resp = requests.get(top_url, timeout=10)
@@ -119,24 +107,17 @@ def fetch_hackernews_stream():
         print(f"❌ HackerNews Stream Error: {e}")
         return []
 
-# ============== Pathway Background Streaming ==============
 def pathway_stream_worker():
-    """
-    Simulates Pathway's streaming behavior with incremental updates.
-    In a full Pathway setup, this would be replaced by pw.run() with proper connectors.
-    """
     print("🚀 Pathway Stream Worker started")
     
     while True:
         try:
-            # Fetch news (like Pathway's news_table)
             news_items = fetch_news_stream()
             with data_lock:
                 for item in news_items:
                     pathway_data["news"].append(item)
                     pathway_data["processed"].append(item)
             
-            # Fetch HackerNews (like Pathway's hackernews_table)  
             hn_items = fetch_hackernews_stream()
             with data_lock:
                 for item in hn_items:
@@ -148,12 +129,9 @@ def pathway_stream_worker():
         except Exception as e:
             print(f"❌ Pathway Stream Error: {e}")
         
-        # Update interval (Pathway would handle this automatically)
         time.sleep(120)
 
-# ============== LLM Query with Fallback ==============
 def query_with_groq(system_prompt: str, user_prompt: str) -> str:
-    """Groq API fallback (free tier with Llama)"""
     if not GROQ_API_KEY:
         raise Exception("GROQ_API_KEY not configured. Get one free at https://console.groq.com/keys")
     
@@ -185,20 +163,14 @@ def query_with_groq(system_prompt: str, user_prompt: str) -> str:
     return resp.json()["choices"][0]["message"]["content"]
 
 def pathway_rag_query(question: str) -> dict:
-    """
-    Pathway-style RAG query that uses the streamed context.
-    Similar to answer_with_geometric_rag but with LLM fallback support.
-    """
     with data_lock:
         all_items = list(pathway_data["processed"])
     
     if not all_items:
-        # Trigger initial fetch
         all_items = fetch_news_stream() + fetch_hackernews_stream()
     
-    # Build context (like Pathway's context builder)
     context_parts = []
-    for item in all_items[-25:]:  # Use recent items
+    for item in all_items[-25:]:
         reliability = item.get("reliability", {})
         context_parts.append(
             f"[Source: {item['source'].upper()} | Reliability: {reliability.get('score', 'Unknown')}]\n"
@@ -208,7 +180,6 @@ def pathway_rag_query(question: str) -> dict:
     
     context = "\n\n---\n\n".join(context_parts)
     
-    # Pathway-style prompt template with STRUCTURED OUTPUT
     system_prompt = """You are a Real-Time News Analyst powered by Pathway's streaming framework.
 You have access to LIVE data from multiple sources that updates in real-time.
 
@@ -249,8 +220,6 @@ LIVE CONTEXT DATA (Pathway Stream):
 
 IMPORTANT: Format your response using the structured format with tables as specified. Include all relevant sources in the table."""
 
-
-    # Count sources
     news_count = sum(1 for i in all_items[-25:] if i.get("source") == "news")
     hn_count = sum(1 for i in all_items[-25:] if i.get("source") == "hackernews")
     sources_info = {
@@ -259,7 +228,6 @@ IMPORTANT: Format your response using the structured format with tables as speci
         "total": len(all_items[-25:])
     }
 
-    # Try OpenAI first, fallback to Groq
     try:
         client = openai.OpenAI()
         response = client.chat.completions.create(
@@ -293,7 +261,6 @@ IMPORTANT: Format your response using the structured format with tables as speci
                 "llm": "none"
             }
 
-# ============== FastAPI Application ==============
 app = FastAPI(
     title="LiveSocialAnalyst - Pathway Edition",
     description="Real-time News Analysis powered by Pathway Streaming Framework",
@@ -319,7 +286,6 @@ class QueryResponse(BaseModel):
 
 @app.on_event("startup")
 async def startup_event():
-    """Start Pathway streaming on app startup"""
     print("=" * 50)
     print("🚀 LiveSocialAnalyst - Pathway Edition")
     print("=" * 50)
@@ -329,14 +295,12 @@ async def startup_event():
     print(f"   HackerNews: ✅ Free API (Always available)")
     print("=" * 50)
     
-    # Start Pathway stream worker
     stream_thread = threading.Thread(target=pathway_stream_worker, daemon=True)
     stream_thread.start()
     print("📡 Pathway Streaming Worker started")
 
 @app.get("/")
 async def root():
-    """Serve the surreal white UI"""
     frontend_path = Path(__file__).parent / "frontend" / "index.html"
     if frontend_path.exists():
         return HTMLResponse(content=frontend_path.read_text(), status_code=200)
@@ -351,7 +315,6 @@ async def root():
 
 @app.post("/query", response_model=QueryResponse)
 async def query(request: QueryRequest):
-    """Pathway RAG query endpoint"""
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
     
@@ -359,7 +322,6 @@ async def query(request: QueryRequest):
 
 @app.get("/status")
 async def status():
-    """Get Pathway stream status"""
     with data_lock:
         news_count = len(pathway_data["news"])
         hn_count = len(pathway_data["hackernews"])
@@ -382,7 +344,6 @@ async def status():
 
 @app.get("/data")
 async def get_data():
-    """Get current streamed data"""
     with data_lock:
         return {
             "news": list(pathway_data["news"])[-15:],
@@ -391,7 +352,6 @@ async def get_data():
             "total_hackernews": len(pathway_data["hackernews"])
         }
 
-# ============== Main ==============
 if __name__ == "__main__":
     import uvicorn
     print("🚀 Starting Pathway-powered LiveSocialAnalyst")

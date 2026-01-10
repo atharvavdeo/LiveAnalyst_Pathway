@@ -1,3 +1,5 @@
+# X (Twitter) streaming data source with rate limiting
+
 import os
 import time
 import threading
@@ -8,29 +10,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Rate limiting - ONLY ONE REQUEST AT A TIME
 _request_lock = threading.Lock()
 _last_request_time = 0
-MIN_REQUEST_INTERVAL = 60  # Minimum 60 seconds between requests (safe for free tier)
-DAILY_REQUEST_LIMIT = 100  # Conservative daily limit
+MIN_REQUEST_INTERVAL = 60
+DAILY_REQUEST_LIMIT = 100
 _daily_request_count = 0
 _day_start = time.time()
 
 def _rate_limit_check():
-    """Ensure we don't exceed rate limits"""
     global _last_request_time, _daily_request_count, _day_start
     
-    # Reset daily counter if new day
-    if time.time() - _day_start > 86400:  # 24 hours
+    if time.time() - _day_start > 86400:
         _daily_request_count = 0
         _day_start = time.time()
     
-    # Check daily limit
     if _daily_request_count >= DAILY_REQUEST_LIMIT:
         print(f"⚠️ Daily X API limit reached ({DAILY_REQUEST_LIMIT}). Waiting until reset...")
         return False
     
-    # Enforce minimum interval between requests
     elapsed = time.time() - _last_request_time
     if elapsed < MIN_REQUEST_INTERVAL:
         wait_time = MIN_REQUEST_INTERVAL - elapsed
@@ -45,7 +42,6 @@ def x_stream():
     consumer_key = os.getenv("X_CONSUMER_KEY")
     consumer_secret = os.getenv("X_CONSUMER_SECRET")
 
-    # Mock data if no keys provided (SAFE MODE for Demo)
     if not consumer_key or consumer_key == "your_x_consumer_key":
         print("⚠️ No X Keys. Streaming dummy social posts...")
         while True:
@@ -58,25 +54,21 @@ def x_stream():
             }
             time.sleep(5)
 
-    # Real X API with OAuth 1.0a (App-only for search)
     auth = OAuth1(consumer_key, consumer_secret)
     
-    # Using X API v2 recent search (free tier has very limited access)
     search_url = "https://api.twitter.com/2/tweets/search/recent"
     seen = set()
     
     while True:
-        # Thread-safe rate limiting
         with _request_lock:
             if not _rate_limit_check():
-                time.sleep(300)  # Wait 5 min if daily limit hit
+                time.sleep(300)
                 continue
             
             try:
-                # Simple query - technology news
                 params = {
                     "query": "technology OR AI OR tech news -is:retweet lang:en",
-                    "max_results": 10,  # Minimal to save quota
+                    "max_results": 10,
                     "tweet.fields": "created_at,public_metrics"
                 }
                 
@@ -87,11 +79,10 @@ def x_stream():
                 
                 if resp.status_code == 429:
                     print("⚠️ X Rate limit hit! Waiting 15 minutes...")
-                    time.sleep(900)  # Wait 15 min on rate limit
+                    time.sleep(900)
                     continue
                 elif resp.status_code == 401:
                     print("❌ X Auth failed. Check your API keys.")
-                    # Fall back to dummy data
                     while True:
                         yield {
                             "source": "x",
@@ -129,7 +120,6 @@ def x_stream():
             except Exception as e:
                 print(f"X API Error: {e}")
             
-        # Wait before next poll (outside lock)
         time.sleep(MIN_REQUEST_INTERVAL)
 
 x_table = pw.io.python.read(

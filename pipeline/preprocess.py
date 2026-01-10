@@ -1,8 +1,9 @@
+# Text preprocessing for Pathway pipeline
+
 import pathway as pw
 from pipeline.reliability import calculate_reliability
 
 def clean_text(text: str) -> str:
-    # Remove newlines and excess whitespace
     if not text: return ""
     return text.replace("\n", " ").strip()
 

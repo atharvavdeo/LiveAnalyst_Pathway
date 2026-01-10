@@ -1,3 +1,5 @@
+# NewsData.io streaming data source
+
 import os
 import time
 import requests
@@ -8,7 +10,6 @@ load_dotenv()
 API_KEY = os.getenv("NEWSDATA_API_KEY")
 
 def news_stream():
-    # If no key is provided, yield a dummy article for testing
     if not API_KEY or API_KEY == "your_newsdata_key_here":
         print("⚠️ No NewsData.io Key found. Streaming dummy data...")
         while True:
@@ -20,7 +21,6 @@ def news_stream():
             }
             time.sleep(10)
     
-    # Real fetching logic using NewsData.io API
     seen = set()
     url = "https://newsdata.io/api/1/latest"
     while True:
@@ -39,9 +39,8 @@ def news_stream():
                     }
         except Exception as e:
             print(f"NewsData.io Error: {e}")
-        time.sleep(60) # Poll every minute
+        time.sleep(60)
 
-# Create the Pathway Table
 news_table = pw.io.python.read(
     news_stream,
     schema={"source": str, "text": str, "url": str, "created_utc": str}
