@@ -1,48 +1,64 @@
-# Reddit streaming data source (optional)
-
-import os
+import yaml
 import time
 import pathway as pw
 import praw
-from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+# Load config
+CONFIG_PATH = Path(__file__).parent.parent / "config.yaml"
+reddit_config = {}
+try:
+    with open(CONFIG_PATH) as f:
+        config = yaml.safe_load(f)
+        reddit_config = config.get("reddit", {})
+except Exception:
+    pass
 
-def reddit_stream():
-    client_id = os.getenv("REDDIT_CLIENT_ID")
-    client_secret = os.getenv("REDDIT_CLIENT_SECRET")
+class RedditConnector(pw.io.python.ConnectorSubject):
+    def run(self):
+        client_id = reddit_config.get("client_id")
+        client_secret = reddit_config.get("client_secret")
+        user_agent = reddit_config.get("user_agent", "LiveSocialAnalyst/0.1")
 
-    if not client_id or client_id == "your_reddit_id":
-        print("⚠️ No Reddit Keys. Streaming dummy social posts...")
-        while True:
-            yield {
-                "source": "reddit",
-                "text": "Rumor: People are saying the AI policy will ban chatbots! #panic",
-                "score": 10,
-                "url": "http://reddit.com",
-                "created_utc": time.time()
-            }
-            time.sleep(5)
+        if not client_id or client_id == "your_reddit_client_id":
+            print("⚠️ Reddit credentials missing. Streaming disabled.")
+            while True:
+                time.sleep(3600)
+                yield None
 
-    reddit = praw.Reddit(
-        client_id=client_id,
-        client_secret=client_secret,
-        user_agent="live-social-analyst:v1.0"
-    )
-    subreddit = reddit.subreddit("technology+worldnews")
-    try:
-        for submission in subreddit.stream.submissions(skip_existing=True):
-            yield {
-                "source": "reddit",
-                "text": f"{submission.title} {submission.selftext}",
-                "score": submission.score,
-                "url": submission.url,
-                "created_utc": submission.created_utc
-            }
-    except Exception as e:
-        print(f"Reddit Error: {e}")
+        try:
+            reddit = praw.Reddit(
+                client_id=client_id,
+                client_secret=client_secret,
+                user_agent=user_agent
+            )
+            print(f"🔌 Connected to Reddit as: {reddit.read_only_mode}")
+            
+            subreddit = reddit.subreddit("technology+artificial+openai+chatgpt")
+            print("✅ Reddit Stream Active: Tracking technology subreddits...")
+            
+            for submission in subreddit.stream.submissions(skip_existing=True):
+                yield {
+                    "source": "reddit",
+                    "text": f"{submission.title} {submission.selftext[:500]}",
+                    "score": submission.score,
+                    "url": submission.url,
+                    "created_utc": submission.created_utc,
+                    "reliability": "Low"
+                }
+        except Exception as e:
+            print(f"❌ Reddit Stream Error: {e}")
+            time.sleep(30)
+
+class RedditSchema(pw.Schema):
+    source: str
+    text: str
+    score: int
+    url: str
+    created_utc: float
+    reliability: str
 
 reddit_table = pw.io.python.read(
-    reddit_stream,
-    schema={"source": str, "text": str, "score": int, "url": str, "created_utc": float}
+    RedditConnector(),
+    schema=RedditSchema
 )

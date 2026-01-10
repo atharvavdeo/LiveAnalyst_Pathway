@@ -1,0 +1,18 @@
+# API Keys and Configuration
+# Rename this file to config.yaml and add your keys
+
+reddit:
+  client_id: "YOUR_REDDIT_CLIENT_ID"
+  client_secret: "YOUR_REDDIT_CLIENT_SECRET"
+  user_agent: "LiveSocialAnalyst/0.1"
+
+gemini:
+  api_key: "YOUR_GEMINI_KEY"
+
+gnews:
+  api_key: "YOUR_GNEWS_KEY"
+  language: "en"
+  country: "global"
+
+newsdata:
+  api_key: "YOUR_NEWSDATA_KEY"
