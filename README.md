@@ -1,8 +1,8 @@
-# LiveSocialAnalyst - Pathway Edition 🚀
+# LiveNewsAnalyst -  using Pathway
 
 Real-time news and social media analysis powered by **Pathway's streaming framework** with AI-powered reliability scoring.
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -68,13 +68,13 @@ Real-time news and social media analysis powered by **Pathway's streaming framew
 
 ## ✨ Features
 
-- **🔶 Pathway Streaming**: Real-time data ingestion from NewsData.io and HackerNews
-- **🤖 AI Analysis**: GPT-4o-mini with Groq (Llama 3.3) fallback
-- **📊 Structured Output**: Tabular source citations with reliability scoring
-- **🎨 Surreal White UI**: Beautiful, modern glassmorphic design
-- **✅ Reliability Indicators**:
-  - ✅ VERIFIED - Official news sources
-  - 🔶 COMMUNITY - HackerNews tech discussions
+- ** Pathway Streaming**: Real-time data ingestion from NewsData.io and HackerNews
+- ** AI Analysis**: GPT-4o-mini with Groq (Llama 3.3) fallback
+- ** Structured Output**: Tabular source citations with reliability scoring
+- ** Surreal White UI**: Beautiful, modern glassmorphic design
+- ** Reliability Indicators**:
+  -  VERIFIED - Official news sources
+  -  COMMUNITY - HackerNews tech discussions
 
 ## 🚀 Quick Start
 
@@ -98,15 +98,15 @@ python app_pathway.py
 
 Then open http://localhost:8000
 
-## 🔑 API Keys Required
+##  API Keys Required
 
 | Key | Required | Get it at |
 |-----|----------|-----------|
-| NEWSDATA_API_KEY | ✅ | https://newsdata.io |
-| GROQ_API_KEY | ✅ | https://console.groq.com/keys (FREE) |
+| NEWSDATA_API_KEY |  | https://newsdata.io |
+| GROQ_API_KEY |  | https://console.groq.com/keys (FREE) |
 | OPENAI_API_KEY | Optional | https://platform.openai.com |
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 LiveAnalyst_Pathway/
@@ -124,7 +124,7 @@ LiveAnalyst_Pathway/
 └── README.md
 ```
 
-## 📖 How It Works
+##  How It Works
 
 1. **Pathway Streaming Worker** continuously fetches news + HackerNews (2-min intervals)
 2. **Data is scored** for reliability (news=HIGH, HN=MEDIUM)
@@ -132,10 +132,5 @@ LiveAnalyst_Pathway/
 4. **AI generates** structured analysis with source tables and reliability breakdowns
 5. **Frontend renders** beautiful styled output with gradient headers and cards
 
-## 🧪 203 Questions Test
-
-Click the "Run 203 Questions Test" button to benchmark the system with automated queries.
-
 ---
 
-Built with ❤️ using **Pathway**, **FastAPI**, **Groq**, and **Llama 3.3**
