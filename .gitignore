@@ -4,3 +4,6 @@ __pycache__/
 *.pyc
 .DS_Store
 config.yaml
+*.db
+*.sqlite
+*.sqlite3

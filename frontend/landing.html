@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveSocialAnalyst | Pathway AI</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- Three.js & GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --orange: #C86B42;
+            --dark-green: #0F2021;
+            --text-light: #F4F4F4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #050505;
+            color: var(--text-light);
+            overflow-x: hidden;
+        }
+
+        /* NAVBAR */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(5, 5, 5, 0.5);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 24px;
+            color: var(--orange);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--white);
+        }
+
+        .btn-launch {
+            background: var(--orange);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .btn-launch:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(200, 107, 66, 0.4);
+        }
+
+        /* HERO SECTION */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            pointer-events: none;
+            /* Let clicks pass to 3D */
+            opacity: 0;
+            /* Animated in */
+        }
+
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 80px;
+            line-height: 1;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #ffffff, #aaaaaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 40px;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            animation: bounce 2s infinite;
+        }
+
+        /* PARALLAX SECTION */
+        .parallax-section {
+            min-height: 150vh;
+            position: relative;
+            background: linear-gradient(180deg, #050505 0%, #0F2021 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sticky-wrapper {
+            position: relative;
+            /* Changed from sticky for GSAP pinning */
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 60px;
+            border-radius: 30px;
+            max-width: 800px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .info-card h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 48px;
+            margin-bottom: 30px;
+            color: var(--orange);
+        }
+
+        .info-card p {
+            font-size: 18px;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        /* Floating Orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 1;
+            opacity: 0.5;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--orange);
+            top: 20%;
+            left: 10%;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: #4caf50;
+            bottom: 20%;
+            right: 10%;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translate(-50%, 0);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: translate(-50%, 10px);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 48px;
+            }
+
+            .info-card {
+                max-width: 90%;
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <div class="logo">LiveSocialAnalyst</div>
+        <div class="nav-links">
+            <a href="https://github.com" target="_blank" class="nav-link">GitHub</a>
+            <a href="/app" class="btn-launch">Launch App →</a>
+        </div>
+    </nav>
+
+    <!-- HERO WITH 3D WORLD -->
+    <section class="hero">
+        <div id="canvas-container"></div>
+        <div class="hero-content">
+            <h1>Global Pulse<br>Real-Time.</h1>
+            <p class="subtitle">Secure AI Analysis on Live Data Streams</p>
+        </div>
+        <div class="scroll-indicator">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                <path d="M7 10l5 5 5-5z" />
+            </svg>
+        </div>
+    </section>
+
+    <!-- WHAT WE DO -->
+    <section class="parallax-section">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+
+        <div class="sticky-wrapper" id="pin-container">
+            <div class="info-card" id="info-box">
+                <h2>Our Mission</h2>
+                <p>
+                    LiveSocialAnalyst harnesses the power of <strong>Pathway's Live Data Framework</strong> to monitor
+                    the heartbeat of the globe.
+                    We ingest simultaneous streams from NewsData, GNews, Reddit, HackerNews, and Firecrawl into a
+                    unified, high-speed Python/Rust engine.
+                </p>
+                <p>
+                    Unlike traditional batch processors, our RAG pipeline continuously synthesizes new information,
+                    offering AI-powered insights that evolve second-by-second.
+                    Experience the future of social intelligence.
+                </p>
+                <a href="/app" class="btn-launch" style="margin-top: 20px; display: inline-block;">Enter Dashboard</a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // 1. THREE.JS 3D EARTH
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Wireframe Sphere
+        const geometry = new THREE.IcosahedronGeometry(10, 2);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x444444,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.3
+        });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+
+        // Core Sphere (Dark)
+        const coreGeo = new THREE.SphereGeometry(9.5, 32, 32);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+        const core = new THREE.Mesh(coreGeo, coreMat);
+        scene.add(core);
+
+        // Orbiting Particles
+        const particlesGeo = new THREE.BufferGeometry();
+        const particlesCount = 200;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 25;
+        }
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.05,
+            color: 0xC86B42,
+            transparent: true,
+            opacity: 0.8
+        });
+        const particles = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particles);
+
+        camera.position.z = 15;
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            sphere.rotation.y += 0.002;
+            particles.rotation.y -= 0.001;
+            particles.rotation.x += 0.0005;
+
+            // Mouse Parallax (Subtle)
+            camera.position.x += (mouseX - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+
+        let mouseX = 0;
+        let mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
+        });
+
+        // Intro Animation with GSAP
+        gsap.to(sphere.scale, { x: 1, y: 1, z: 1, duration: 2, ease: "power3.out", startAt: { x: 0, y: 0, z: 0 } });
+        gsap.to(".hero-content", { opacity: 1, y: 0, duration: 1.5, delay: 0.5, ease: "power3.out", startAt: { y: 50 } });
+
+        animate();
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 2. GSAP SCROLLTEXT
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Pin the text box while orbs move
+        gsap.to(".sticky-wrapper", {
+            scrollTrigger: {
+                trigger: ".parallax-section",
+                start: "top top",
+                end: "+=100%",
+                pin: true,
+                scrub: true
+            }
+        });
+
+        // Move Orbs
+        gsap.to(".orb-1", {
+            y: 200,
+            x: 100,
+            scrollTrigger: {
+                trigger: ".parallax-section",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1
+            }
+        });
+
+        gsap.to(".orb-2", {
+            y: -200,
+            x: -100,
+            scrollTrigger: {
+                trigger: ".parallax-section",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1
+            }
+        });
+
+        // Reveal text
+        gsap.from(".info-card", {
+            y: 100,
+            opacity: 0,
+            scrollTrigger: {
+                trigger: ".parallax-section",
+                start: "top 60%",
+                end: "top 40%",
+                scrub: 1
+            }
+        });
+
+    </script>
+</body>
+
+</html>

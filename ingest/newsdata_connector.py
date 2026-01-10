@@ -26,10 +26,11 @@ class NewsDataConnector(pw.io.python.ConnectorSubject):
         
         while True:
             try:
+                # BROADER SCOPE: Changed categories
                 params = {
                     "apikey": API_KEY,
                     "language": "en",
-                    "category": "technology,business,science"
+                    "category": "top,politics,world,business,technology" 
                 }
                 resp = requests.get(url, params=params, timeout=30)
                 

@@ -29,12 +29,14 @@ class GNewsConnector(pw.io.python.ConnectorSubject):
         
         while True:
             try:
+                # BROADER SCOPE: Removed 'topic=technology'
+                # Fetching General Top Headlines
                 params = {
                     "token": API_KEY,
                     "lang": LANG,
                     "country": COUNTRY,
-                    "topic": "technology",
                     "max": 10
+                    # No 'topic' param means "General"
                 }
                 resp = requests.get(base_url, params=params, timeout=30)
                 
@@ -73,7 +75,51 @@ class GNewsSchema(pw.Schema):
     created_utc: str
     reliability: str
 
-gnews_table = pw.io.python.read(
-    GNewsConnector(),
-    schema=GNewsSchema
-)
+
+# --- ON-DEMAND HISTORICAL SEARCH ---
+def search_historical(query: str, days: int = 1000) -> list:
+    """
+    Perform an on-demand historical search for specific keywords.
+    Uses the /search endpoint instead of /top-headlines.
+    """
+    if not API_KEY or API_KEY == "your_gnews_api_key":
+        print("⚠️ No GNews Key for historical search.")
+        return []
+        
+    print(f"🌍 GNews Historical Search: '{query}' (Last {days} days)")
+    base_url = "https://gnews.io/api/v4/search"
+    
+    # Calculate 'from' date if needed, but GNews defaults to sorting by relevance/date
+    # Max count 10 for speed
+    params = {
+        "token": API_KEY,
+        "q": query,
+        "lang": LANG,
+        "country": COUNTRY,
+        "max": 10,
+        "sortby": "relevance"
+    }
+    
+    try:
+        resp = requests.get(base_url, params=params, timeout=30)
+        items = []
+        if resp.status_code == 200:
+            data = resp.json()
+            articles = data.get("articles", [])
+            
+            for article in articles:
+                items.append({
+                    "source": "gnews_historical",
+                    "text": f"{article.get('title', '')}. {article.get('description', '')}",
+                    "url": article.get("url"),
+                    "created_utc": article.get("publishedAt", ""),
+                    "reliability": "High"
+                })
+            print(f"✅ Found {len(items)} historical articles.")
+            return items
+        else:
+            print(f"❌ GNews Search Error: {resp.text}")
+            return []
+    except Exception as e:
+        print(f"❌ GNews Search Exception: {e}")
+        return []

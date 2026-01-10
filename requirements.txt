@@ -5,3 +5,5 @@ requests-oauthlib
 python-dotenv
 openai
 pathway
+chromadb
+sentence-transformers

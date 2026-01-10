@@ -20,8 +20,8 @@ class RedditConnector(pw.io.python.ConnectorSubject):
         client_secret = reddit_config.get("client_secret")
         user_agent = reddit_config.get("user_agent", "LiveSocialAnalyst/0.1")
 
-        if not client_id or client_id == "your_reddit_client_id":
-            print("⚠️ Reddit credentials missing. Streaming disabled.")
+        if not client_id or client_id.startswith("your_") or client_id.startswith("YOUR_"):
+            print("⚠️ Reddit credentials missing or placeholder. Streaming disabled.")
             while True:
                 time.sleep(3600)
                 yield None
@@ -34,8 +34,9 @@ class RedditConnector(pw.io.python.ConnectorSubject):
             )
             print(f"🔌 Connected to Reddit as: {reddit.read_only_mode}")
             
-            subreddit = reddit.subreddit("technology+artificial+openai+chatgpt")
-            print("✅ Reddit Stream Active: Tracking technology subreddits...")
+            # BROADER SCOPE: Added worldnews, news, politics
+            subreddit = reddit.subreddit("worldnews+news+politics+technology+openai+artificial")
+            print("✅ Reddit Stream Active: Tracking World/News/Tech subreddits...")
             
             for submission in subreddit.stream.submissions(skip_existing=True):
                 yield {
