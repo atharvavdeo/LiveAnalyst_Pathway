@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+requests
+requests-oauthlib
+python-dotenv
+openai
+pathway
