@@ -16,6 +16,7 @@ graph TD
         NewsAPI[NewsAPI.org] -->|ConnectorSubject| Buffer[In-Memory Deque]
         GNews[GNews.io] -->|ConnectorSubject| Buffer
         Social["HackerNews/Reddit"] -->|ConnectorSubject| Buffer
+        OPML["OPML Ingestor (1800+ RSS)"] -->|ConnectorSubject| Buffer
         Firecrawl["Firecrawl (Web)"] -->|On-Demand| VectorStore
     end
 
@@ -36,7 +37,9 @@ Each data source is implemented as a **Pathway Connector** (`pw.io.python.Connec
 - **NewsAPI Streams**: Captures global breaking news and specific topic streams (e.g., "Fun/Viral" stream) in real-time.
 - **GNews Historical Bridge**: Provides on-demand access to a 3-year archive for deep context on geopolitical and economic queries.
 - **Social Firehose**: Ingests rapid-fire sentiment data from Reddit and HackerNews.
+- **🚀 OPML Mass Ingestor (Nuclear Option)**: Ingests **1,800+ categorized RSS feeds** from the [plenaryapp/awesome-rss-feeds](https://github.com/plenaryapp/awesome-rss-feeds) repository, parsing OPML files and polling all feeds continuously.
 - **Firecrawl Targeted Scraper**: Executes precision deep-web scraping for specific URLs or semantic targets.
+
 
 All incoming data is normalized into a unified Pathway schema before being routed to the storage layer. Pathway's Rust engine handles the parallelism, freeing us from Python's GIL limitations.
 

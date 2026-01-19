@@ -20,6 +20,7 @@ from ingest.gnews_connector import GNewsConnector, search_historical
 from ingest.reddit_stream import RedditConnector
 from ingest.hackernews_stream import HackerNewsConnector
 from ingest.firecrawl_connector import FirecrawlConnector, scrape_targeted
+from ingest.opml_loader import OPMLIngestor, DEFAULT_OPML_URLS
 
 # ... 
 
@@ -42,8 +43,8 @@ from data.database import save_articles_batch, search_history
 
 # Data Store
 data_store = {
-    "items": deque(maxlen=200),
-    "stats": {"news": 0, "social": 0}
+    "items": deque(maxlen=500),  # Increased for OPML volume
+    "stats": {"news": 0, "social": 0, "opml": 0}
 }
 data_lock = threading.Lock()
 
@@ -61,8 +62,10 @@ def run_connector(generator, source_name):
                     
                     data_store["items"].append(item)
                     
-                    if source_name in ['newsdata', 'gnews']:
+                    if source_name in ['newsdata', 'gnews', 'newsapi']:
                         data_store["stats"]["news"] += 1
+                    elif source_name == 'opml':
+                        data_store["stats"]["opml"] += 1
                     else:
                         data_store["stats"]["social"] += 1
                 
@@ -96,7 +99,10 @@ def startup():
     threading.Thread(target=run_connector, args=(RedditConnector().run(), "reddit"), daemon=True).start()
     threading.Thread(target=run_connector, args=(FirecrawlConnector().run(), "firecrawl"), daemon=True).start()
     
-    print("✅ All streams active")
+    # 🚀 NUCLEAR OPTION: OPML Mass Ingestion (1800+ feeds)
+    threading.Thread(target=run_connector, args=(OPMLIngestor(DEFAULT_OPML_URLS).run(), "opml"), daemon=True).start()
+    
+    print("✅ All streams active (including OPML Nuclear Ingestion)")
 
 # --- NEW ENDPOINT FOR DYNAMIC CATEGORIES ---
 class CategoryRequest(BaseModel):
