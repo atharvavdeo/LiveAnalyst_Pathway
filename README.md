@@ -1,6 +1,10 @@
 # Live Social Analyst
 
-**Live Social Analyst** is a high-performance, hybrid RAG (Retrieval-Augmented Generation) engine that aggregates real-time news, social media streams, and historical data to provide instant, context-aware intelligence.
+[![Pathway](https://img.shields.io/badge/Powered%20by-Pathway-blue)](https://github.com/pathwaycom/pathway)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-green)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)](https://fastapi.tiangolo.com)
+
+**Live Social Analyst** is a high-performance, hybrid RAG (Retrieval-Augmented Generation) engine built on the **[Pathway](https://github.com/pathwaycom/pathway) Live Data Framework**. It aggregates real-time news from 1,800+ RSS feeds, social media streams, and historical data to provide instant, context-aware intelligence with de-duplication, reliability scoring, and conflict resolution.
 
 ## System Architecture
 
@@ -151,10 +155,37 @@ All connectors (NewsAPI, GNews, HackerNews, Reddit, Firecrawl) run as continuous
 
 ---
 
+## API Endpoints
+
+The FastAPI backend exposes the following endpoints:
+
+| Endpoint | Method | Description | Response |
+|----------|--------|-------------|----------|
+| `/` | GET | Landing page with 3D visualization | HTML |
+| `/app` | GET | Main dashboard application | HTML |
+| `/data` | GET | Live stream data (news, social, stats) | JSON |
+| `/fetch_news` | POST | On-demand category fetch | JSON `{"items": [...]}` |
+| `/query` | POST | RAG-powered intelligent search | JSON `{"answer": ..., "sources": [...]}` |
+
+### Example: Query the RAG Pipeline
+```bash
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What is happening with AI?"}'
+```
+
+---
+
 ## Tech Stack
-- **Backend Frameowrk**: FastAPI
-- **Language**: Python 3.11
-- **LLM Orchestration**: Google Gemini, Groq (Llama 3)
-- **Vector Database**: ChromaDB
-- **Embeddings**: Sentence-Transformers
-- **Frontend**: Native JS, HTML5, CSS Variables
+
+| Category | Technology |
+|----------|------------|
+| **Stream Processing** | [Pathway](https://github.com/pathwaycom/pathway) (Rust-powered ETL) |
+| **Backend Framework** | FastAPI + Uvicorn |
+| **Language** | Python 3.10+ |
+| **LLM Orchestration** | Google Gemini 1.5 Pro, Groq (Llama 3.3) |
+| **Vector Database** | ChromaDB (In-Memory) |
+| **Embeddings** | Sentence-Transformers (`all-MiniLM-L6-v2`) |
+| **Data Sources** | NewsAPI, GNews, HackerNews, Reddit, Firecrawl, OPML (1800+ RSS) |
+| **Persistence** | SQLite |
+| **Frontend** | Native JS, HTML5, CSS Variables |
