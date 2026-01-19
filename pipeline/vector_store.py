@@ -145,6 +145,9 @@ class VectorStore:
                 query_embeddings=[query_embedding],
                 n_results=min(n_results, self.collection.count())
             )
+        except Exception as e:
+            print(f"Vector search error: {e}")
+            return []
         
         # Format results
         items = []
