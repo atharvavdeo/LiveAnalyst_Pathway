@@ -1225,9 +1225,12 @@
                 ];
 
                 const relevantLive = liveStreams.filter(item => {
+                    // ALWAYS include OPML items (Nuclear Option)
+                    if (item.source === 'opml') return true;
+
                     if (!item.category) {
                         // If no category, include in 'General' or defaults
-                        return category === 'General' || category === 'Technology'; // Assume tech for reddit/hn
+                        return category === 'General' || category === 'Technology';
                     }
                     return item.category.toLowerCase().includes(category.toLowerCase());
                 });
