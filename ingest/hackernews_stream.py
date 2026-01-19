@@ -1,8 +1,8 @@
 import time
 import requests
-import pathway as pw
+# import pathway as pw
 
-class HackerNewsConnector(pw.io.python.ConnectorSubject):
+class HackerNewsConnector:
     def run(self):
         seen = set()
         
@@ -45,15 +45,15 @@ class HackerNewsConnector(pw.io.python.ConnectorSubject):
             
             time.sleep(120)
 
-class HackerNewsSchema(pw.Schema):
-    source: str
-    text: str
-    url: str
-    created_utc: str
-    score: int
-    reliability: str
-
-hackernews_table = pw.io.python.read(
-    HackerNewsConnector(),
-    schema=HackerNewsSchema
-)
+# class HackerNewsSchema(pw.Schema):
+#     source: str
+#     text: str
+#     url: str
+#     created_utc: str
+#     score: int
+#     reliability: str
+# 
+# hackernews_table = pw.io.python.read(
+#     HackerNewsConnector(),
+#     schema=HackerNewsSchema
+# )

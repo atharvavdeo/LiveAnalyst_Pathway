@@ -1,7 +1,7 @@
 import time
 import requests
 import yaml
-import pathway as pw
+# import pathway as pw
 from pathlib import Path
 
 # Load config
@@ -13,7 +13,7 @@ try:
 except Exception as e:
     API_KEY = None
 
-class FirecrawlConnector(pw.io.python.ConnectorSubject):
+class FirecrawlConnector:
     def run(self):
         if not API_KEY:
             print("⚠️ No Firecrawl Key configured. Skipping...")
@@ -79,12 +79,12 @@ class FirecrawlConnector(pw.io.python.ConnectorSubject):
             # Poll every 5 minutes
             time.sleep(300)
 
-class FirecrawlSchema(pw.Schema):
-    source: str
-    text: str
-    url: str
-    created_utc: str
-    reliability: str
+# class FirecrawlSchema(pw.Schema):
+#     source: str
+#     text: str
+#     url: str
+#     created_utc: str
+#     reliability: str
 
 
 # --- ON-DEMAND TARGETED SCRAPING ---

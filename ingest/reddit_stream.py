@@ -1,6 +1,6 @@
 import yaml
 import time
-import pathway as pw
+# import pathway as pw
 import praw
 from pathlib import Path
 
@@ -14,7 +14,7 @@ try:
 except Exception:
     pass
 
-class RedditConnector(pw.io.python.ConnectorSubject):
+class RedditConnector:
     def run(self):
         client_id = reddit_config.get("client_id")
         client_secret = reddit_config.get("client_secret")
@@ -51,15 +51,15 @@ class RedditConnector(pw.io.python.ConnectorSubject):
             print(f"❌ Reddit Stream Error: {e}")
             time.sleep(30)
 
-class RedditSchema(pw.Schema):
-    source: str
-    text: str
-    score: int
-    url: str
-    created_utc: float
-    reliability: str
-
-reddit_table = pw.io.python.read(
-    RedditConnector(),
-    schema=RedditSchema
-)
+# class RedditSchema(pw.Schema):
+#     source: str
+#     text: str
+#     score: int
+#     url: str
+#     created_utc: float
+#     reliability: str
+# 
+# reddit_table = pw.io.python.read(
+#     RedditConnector(),
+#     schema=RedditSchema
+# )

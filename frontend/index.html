@@ -832,6 +832,62 @@
             opacity: 1;
             visibility: visible;
         }
+
+        /* --- LIVE MODAL CSS --- */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: white;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            padding: 30px;
+            border-radius: 12px;
+            overflow-y: auto;
+            position: relative;
+            border: 4px solid black;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            font-weight: 900;
+            color: black;
+            line-height: 1;
+        }
+
+        .live-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+
+        .live-item:last-child {
+            border-bottom: none;
+        }
+
+        .live-badge {
+            background: var(--accent-solid);
+            color: white;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
     </style>
 </head>
 
@@ -886,6 +942,8 @@
                     <p style="font-weight:600; color:#888;" id="refresh-indicator">Live Updates</p>
                 </div>
                 <div class="category-pill" onclick="location.reload()">Change Topic</div>
+                <div class="category-pill" style="background:var(--accent-solid); margin-left:10px;"
+                    onclick="openLiveSection()">Fetch Live</div>
             </header>
 
             <!-- Hero Article (Dynamically populated first item) -->
@@ -1225,14 +1283,16 @@
                 ];
 
                 const relevantLive = liveStreams.filter(item => {
-                    // ALWAYS include OPML items (Nuclear Option)
-                    if (item.source === 'opml') return true;
+                    // Filter strictly by category
+                    if (item.source === 'hackernews' && category.toLowerCase() === 'technology') return true;
 
-                    if (!item.category) {
-                        // If no category, include in 'General' or defaults
-                        return category === 'General' || category === 'Technology';
-                    }
-                    return item.category.toLowerCase().includes(category.toLowerCase());
+                    if (!item.category) return false;
+
+                    const itemCat = item.category.toLowerCase();
+                    const targetCat = category.toLowerCase();
+
+                    // Match if category overlaps
+                    return itemCat.includes(targetCat) || targetCat.includes(itemCat);
                 });
 
                 combinedItems = [...combinedItems, ...relevantLive];
@@ -1385,7 +1445,101 @@
             if (hours < 24) return `${hours}h ago`;
             return `${Math.floor(hours / 24)}d ago`;
         }
+        // --- LIVE SECTION FEATURE ---
+        // --- LIVE SECTION FEATURE ---
+        async function openLiveSection() {
+            const overlay = document.getElementById('live-overlay');
+            const list = document.getElementById('live-list');
+            overlay.style.display = 'flex';
+            list.innerHTML = '<p style="text-align:center; padding:20px; font-size:1.2rem;">⚡ Triggering Real-Time Fetch...</p>';
+
+            try {
+                // 1. Trigger OPML Refresh (Real-Time)
+                await fetch(API_BASE + '/refresh_opml', { method: 'POST' });
+
+                // 2. Wait for backend to churn diverse feeds (2.5 seconds)
+                list.innerHTML = '<p style="text-align:center; padding:20px; font-size:1.2rem;">📡 Scanning 1800+ Global Sources...</p>';
+                await new Promise(r => setTimeout(r, 2500));
+
+                // 3. Fetch Data
+                const response = await fetch(API_BASE + '/data');
+                const data = await response.json();
+
+                // Aggregate all sources
+                const allItems = [
+                    ...(data.newsapi || []),
+                    ...(data.gnews || []),
+                    ...(data.opml || []),
+                    ...(data.firecrawl || []),
+                    ...(data.reddit || []),
+                    ...(data.hackernews || [])
+                ];
+
+                // Deduplicate by URL and Text
+                const uniqueItems = [];
+                const seen = new Set();
+                allItems.forEach(item => {
+                    const key = (item.url || '') + '|' + (item.text || '').substring(0, 50);
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        uniqueItems.push(item);
+                    }
+                });
+
+                // Sort by date (descending)
+                uniqueItems.sort((a, b) => {
+                    const tA = a.created_utc ? new Date(a.created_utc).getTime() : 0;
+                    const tB = b.created_utc ? new Date(b.created_utc).getTime() : 0;
+                    return tB - tA;
+                });
+
+                const top10 = uniqueItems.slice(0, 10);
+
+                if (top10.length === 0) {
+                    list.innerHTML = '<p style="text-align:center; padding:20px;">No live data available yet. Backend warming up...</p>';
+                    return;
+                }
+
+                list.innerHTML = top10.map((item, idx) => {
+                    const timeAgo = calculateTimeAgo(item.created_utc);
+                    // Strip HTML from text
+                    const tempDiv = document.createElement("div");
+                    tempDiv.innerHTML = item.text;
+                    const safeText = tempDiv.textContent || tempDiv.innerText || "";
+
+                    return `
+                    <div class="live-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="font-size:0.8rem; color:#666; font-weight:600;">${timeAgo}</span>
+                        </div>
+                        <h4 onclick="window.open('${item.url}', '_blank')" style="cursor:pointer; font-size:1.2rem; font-family:var(--font-head); line-height:1.3;">${safeText}</h4>
+                    </div>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                list.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error connecting to backend: ${e.message}</p>`;
+            }
+        }
+
+        function closeLiveSection() {
+            document.getElementById('live-overlay').style.display = 'none';
+        }
     </script>
+
+    <!-- LIVE ITEMS MODAL -->
+    <div id="live-overlay" class="overlay">
+        <div class="modal-box">
+            <span class="close-btn" onclick="closeLiveSection()">&times;</span>
+            <div
+                style="display:flex; align-items:center; margin-bottom:20px; border-bottom:2px solid black; padding-bottom:10px;">
+                <h2 style="font-family: var(--font-head); font-size: 2rem; margin:0;">🔴 Live Global Feed</h2>
+            </div>
+            <div id="live-list">
+                <!-- Items -->
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

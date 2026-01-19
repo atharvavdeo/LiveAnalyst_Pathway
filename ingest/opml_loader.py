@@ -1,7 +1,7 @@
 # OPML Mass Ingestion Connector for Pathway
 # This is the "nuclear option" - ingesting 1800+ feeds from OPML files
 
-import pathway as pw
+# import pathway as pw
 import requests
 import feedparser
 import time
@@ -9,14 +9,14 @@ import random
 import re
 
 
-class OPMLIngestor(pw.io.python.ConnectorSubject):
+class OPMLIngestor:
     """
     Pathway Connector that ingests RSS feeds from OPML files.
     Designed for high-volume ingestion from repositories like plenaryapp/awesome-rss-feeds.
     """
     
     def __init__(self, opml_urls, poll_frequency=300):
-        super().__init__()
+        # super().__init__()
         self.opml_urls = opml_urls
         self.poll_frequency = poll_frequency  # Poll feeds every 5 mins
         self.feed_urls = set()
@@ -60,9 +60,15 @@ class OPMLIngestor(pw.io.python.ConnectorSubject):
                 print(f"❌ Failed to fetch OPML {url}: {e}")
         print(f"✅ Loaded {len(self.feed_urls)} active feeds.")
 
+    def manual_refresh(self):
+        """Triggers an immediate restart of the feed cycle"""
+        print("⚡ OPML: Manual refresh triggered!")
+        self.force_restart = True
+
     def run(self):
         # Initial Load
         self._refresh_sources()
+        self.force_restart = False
         
         if not self.feed_urls:
             print("⚠️ OPML: No feeds loaded, streaming disabled.")
@@ -77,10 +83,22 @@ class OPMLIngestor(pw.io.python.ConnectorSubject):
             feeds = list(self.feed_urls)
             random.shuffle(feeds)
             items_yielded = 0
+            
+            # Reset flag at start of cycle
+            if self.force_restart:
+                self.force_restart = False
 
             for idx, (url, category) in enumerate(feeds):
+                # CHECK FOR MANUAL INTERRUPT
+                if self.force_restart:
+                    print("⚡ OPML: Restarting feed cycle immediately...")
+                    break
+
                 try:
                     # Parse the individual RSS feed with timeout
+                    # feedparser handles timeouts internally or via socket default?
+                    # Set global socket timeout if needed, but requests uses its own.
+                    # Feedparser uses urllib.
                     feed = feedparser.parse(url)
                     
                     if not feed.entries:
@@ -110,7 +128,7 @@ class OPMLIngestor(pw.io.python.ConnectorSubject):
                     continue  # Skip broken feeds
                 
                 # Tiny sleep to be a "polite" crawler
-                time.sleep(0.05)  # Reduced from 0.1
+                time.sleep(0.05)  
 
             print(f"✅ OPML: Completed cycle, yielded {items_yielded} new items. Sleeping {self.poll_frequency}s...")
             # Wait before restarting the massive loop
@@ -118,13 +136,13 @@ class OPMLIngestor(pw.io.python.ConnectorSubject):
 
 
 # Pathway Schema for OPML items
-class OPMLSchema(pw.Schema):
-    text: str
-    source: str
-    category: str
-    url: str
-    reliability: str
-    timestamp: float
+# class OPMLSchema(pw.Schema):
+#     text: str
+#     source: str
+#     category: str
+#     url: str
+#     reliability: str
+#     timestamp: float
 
 
 # Default OPML sources from awesome-rss-feeds repository
@@ -144,8 +162,9 @@ def create_opml_table(opml_urls=None):
     """
     Factory function to create a Pathway table from OPML feeds.
     """
-    urls = opml_urls or DEFAULT_OPML_URLS
-    return pw.io.python.read(
-        OPMLIngestor(opml_urls=urls),
-        schema=OPMLSchema
-    )
+    pass
+    # urls = opml_urls or DEFAULT_OPML_URLS
+    # return pw.io.python.read(
+    #     OPMLIngestor(opml_urls=urls),
+    #     schema=OPMLSchema
+    # )

@@ -1,211 +1,108 @@
-# Live Social Analyst
+# Live Social Analyst | 24/7 Real-Time Intelligence
 
-[![Pathway](https://img.shields.io/badge/Powered%20by-Pathway-blue)](https://github.com/pathwaycom/pathway)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-green)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)](https://fastapi.tiangolo.com)
+[![Groq](https://img.shields.io/badge/AI-Groq%20Llama%203-orange)](https://groq.com)
+[![Gemini](https://img.shields.io/badge/AI-Gemini%201.5-blue)](https://deepmind.google/technologies/gemini/)
 
-**Live Social Analyst** is a high-performance, hybrid RAG (Retrieval-Augmented Generation) engine built on the **[Pathway](https://github.com/pathwaycom/pathway) Live Data Framework**. It aggregates real-time news from 1,800+ RSS feeds, social media streams, and historical data to provide instant, context-aware intelligence with de-duplication, reliability scoring, and conflict resolution.
+**Live Social Analyst** is a high-performance, real-time intelligence engine designed to aggregate, deduplicate, and analyze global information streams instantly. It combines a massive ingestion network (1800+ RSS feeds, NewsAPI, GNews, Reddit, HackerNews) with a Hybrid RAG (Retrieval-Augmented Generation) pipeline to answer complex queries like "What is happening with Shark Tank right now?" with verifiable sources.
 
-## System Architecture
+## 🚀 Key Features
 
-The system is architected around the **[Pathway](https://github.com/pathwaycom/pathway) Live Data Framework**, a Python ETL framework for stream processing powered by a high-performance Rust engine. Pathway enables the system to process live information with sub-second latency while maintaining deep historical context through incremental computation.
+*   **☢️ "Nuclear Option" Ingestion**: Simultaneously streams data from **1800+ Global RSS feeds** (OPML) alongside premium APIs. [See Architecture](OPML_ARCHITECTURE.md).
+*   **🔴 Real-Time "Fetch Live"**: Front-end button triggers an immediate, interrupt-driven refresh of the backend engine, ensuring sub-second data freshness.
+*   **🧠 Hybrid RAG Pipeline**:
+    *   **Retrieval**: Combines live memory buffers (Hot) with historical SQLite storage (Cold).
+    *   **Generation**: Uses **Gemini 1.5 Flash** with automatic failover to **Groq (Llama 3)** for resilience.
+*   **🛡️ Intelligent Deduplication**: Filter logic removes duplicate stories across different sources to keep the feed clean.
+*   **🏷️ Topic isolation**: Strict category filtering allows users to isolate "Business", "Tech", or "Science" streams without noise.
+
+---
+
+## 🏗️ System Architecture
+
+The system uses a **Multithreaded Producer-Consumer Architecture** to handle high-velocity data without blocking the API.
 
 ### Architecture Diagram
 ```mermaid
 graph TD
-    User[User Frontend] -->|Polls| API[FastAPI Backend]
-    User -->|Query| RAG[RAG Pipeline]
+    User[User Frontend] -->|Polls/Fetch| API[FastAPI Backend]
+    User -->|Query "Shark Tank"| RAG[Analysis Pipeline]
 
-    subgraph "Pathway Connectors (pw.io.python)"
-        NewsAPI[NewsAPI.org] -->|ConnectorSubject| Buffer[In-Memory Deque]
-        GNews[GNews.io] -->|ConnectorSubject| Buffer
-        Social["HackerNews/Reddit"] -->|ConnectorSubject| Buffer
-        OPML["OPML Ingestor (1800+ RSS)"] -->|ConnectorSubject| Buffer
-        Firecrawl["Firecrawl (Web)"] -->|On-Demand| VectorStore
+    subgraph "Ingestion Engine (Daemon Threads)"
+        NewsAPI[NewsAPI.org] -->|Thread 1| Buffer[Live Memory Deque]
+        GNews[GNews.io] -->|Thread 2| Buffer
+        Social["Reddit/HN"] -->|Thread 3| Buffer
+        OPML["OPML Nuclear (1800+)"] -->|Thread 4 (Global)| Buffer
     end
 
-    subgraph "Persistence & Search"
-        Buffer -->|Batch Write| SQL[SQLite Database]
-        RAG -->|Context| VectorStore[ChromaDB]
-        RAG -->|History| SQL
+    subgraph "Control Plane"
+        User -->|Click 'Fetch Live'| RefreshEP[/refresh_opml]
+        RefreshEP -->|Signal| OPML
+        OPML -->|Force Restart| Web[The Internet]
     end
 
     subgraph "AI Synthesis"
-        VectorStore -->|Relevant Context| LLM["Gemini/Groq"]
-        LLM -->|Answer| API
+        Buffer -->|Context| LLM["Gemini / Groq"]
+        LLM -->|Summary & Finds| API
     end
 ```
 
-### 1. Pathway Connector Layer (Ingestion)
-Each data source is implemented as a **Pathway Connector** (`pw.io.python.ConnectorSubject`), enabling true stream processing with Pathway's differential dataflow engine:
-- **NewsAPI Streams**: Captures global breaking news and specific topic streams (e.g., "Fun/Viral" stream) in real-time.
-- **GNews Historical Bridge**: Provides on-demand access to a 3-year archive for deep context on geopolitical and economic queries.
-- **Social Firehose**: Ingests rapid-fire sentiment data from Reddit and HackerNews.
-- **Firecrawl Targeted Scraper**: Executes precision deep-web scraping for specific URLs or semantic targets.
+### 1. Ingestion Layer
+Instead of relying on heavy external frameworks, we implemented a custom **Python Threading** engine. Each connector (News, Social, OPML) runs in its own daemon thread, fetching data and pushing it to a thread-safe `deque`.
+*   **OPML Engine**: See [OPML_ARCHITECTURE.md](OPML_ARCHITECTURE.md) for details on the "Nuclear" mass-ingestion system.
 
-#### 🚀 OPML Mass Ingestor (Nuclear Option)
-The OPML connector ingests **200+ categorized RSS feeds** from the [plenaryapp/awesome-rss-feeds](https://github.com/plenaryapp/awesome-rss-feeds) repository, providing the highest velocity live data feed.
-
-**OPML Sources:**
-```python
-DEFAULT_OPML_URLS = [
-    # With category (higher quality feeds with proper categorization)
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Technology.opml",
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Programming.opml",
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/News.opml",
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Science.opml",
-    # Without category (additional tech feeds)
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/Tech.opml",
-]
-```
-
-**How it works:**
-1. Fetches OPML files from GitHub (XML format containing RSS feed URLs)
-2. Parses using **regex** (handles malformed XML gracefully)
-3. Polls each RSS feed every 5 minutes, yielding items to the Pathway stream
-4. Each item gets a `created_utc` timestamp at ingestion time for freshness tracking
-
-All incoming data is normalized into a unified Pathway schema before being routed to the storage layer. Pathway's Rust engine handles the parallelism, freeing us from Python's GIL limitations.
-
-### 2. Hybrid Data Storage
-The architecture utilizes a tiered storage strategy to optimize for both freshness and persistence:
-- **Hot Storage (In-Memory)**: The Live Stream buffer holds the most recent data points in memory for immediate access by the RAG engine.
-- **Cold Storage (SQLite)**: High-value articles and historical search results are persisted to a relational database for long-term trend analysis and auditability.
-
-### 3. The Hybrid RAG Pipeline
-Every user query triggers a sophisticated retrieval pipeline designed to maximize relevance and accuracy:
-
-#### A. Vector Embedding & Indexing
-Incoming items from the Pathway Data Stream are embedded using `sentence-transformers/all-MiniLM-L6-v2`, creating a 384-dimensional vector representation. These vectors are indexed in **ChromaDB (In-Memory)**, enabling semantic search capabilities that go beyond simple keyword matching.
-
-#### B. Context Construction Algorithm
-The RAG engine constructs the context window for the LLM using a multi-factor ranking algorithm:
-1.  **Freshness Filter**: Prioritizes live data items (less than 5 minutes old) for real-time queries.
-2.  **Semantic Vector Search**: Retrieves items that are conceptually related to the query, even without exact keyword matches.
-3.  **Keyword Boosting**: Ensures items with exact name matches are included to prevent hallucination.
-4.  **Fallback Mechanism**: Automatically triggers secondary data providers (e.g., NewsAPI fallback) if primary historical sources yield insufficient data.
-
-### 4. LLM Synthesis
-The constructed context is processed by **Gemini 1.5 Pro** (or **Llama 3 via Groq**) to generate the final intelligence output. The LLM synthesizes the retrieval set into an Executive Summary and verified Key Findings, citing specific sources from the data stream.
+### 2. RAG & AI Layer
+*   **Model A (Primary)**: Gemini 1.5 Flash (Google) - Fast, large context.
+*   **Model B (Fallback)**: Groq (Llama 3.3 70B) - Ultra-low latency inference.
+*   **Vector Search**: (Currently disabled to prevent threading deadlocks, relying on Keyword + Time-Decay Re-ranking).
 
 ---
 
-## App Previews
-
-### Landing Page
-A minimalist entry point featuring a 3D data visualization and architectural overview.
-![Landing Page](preview_landing.png)
-
-### The Dashboard
-The main interface featuring the real-time Pathway Data Stream and Bento-grid layout.
-![Dashboard Architecture](preview_arch.png)
-
-### Intelligent Search
-The Hybrid RAG analysis view showing synthesized intelligence and reliability scoring.
-![Search Analysis](preview_search.png)
-
----
-
-## Getting Started
+## 🛠️ Installation & Usage
 
 ### Prerequisites
-- Python 3.10+
-- API Keys: `GEMINI_API_KEY`, `NEWSAPI_KEY`, `GNEWS_API_KEY`
+*   Python 3.10+
+*   API Keys: Gemini, Groq, NewsAPI, GNews (configured in `.env` and `config.yaml`).
 
-### Installation
+### 1. Setup
 ```bash
-# Clone the repository
-git clone https://github.com/YourRepo/LiveSocialAnalyst.git
-
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### Running the Application
+### 2. Run the Backend
 ```bash
-# Start the FastAPI server (Backend + Frontend)
-python app_pathway.py
+# Starts FastAPI server on port 8000
+python3 app_pathway.py
 ```
-Access the application at `http://localhost:8000/`.
+*   **Note**: The server logs will show "🚀 OPML: Starting to parse..." indicating the engine is warming up.
+
+### 3. Access the Frontend
+Open `frontend/index.html` in your browser, or visit:
+`http://localhost:8000/app`
+
+### 4. How to Use
+1.  **View Feed**: The main page shows a "Verge-style" Bento grid of top news.
+2.  **Filter Topics**: Click "Business", "Tech", etc. in the startup modal or header.
+3.  **🔴 Fetch Live**: Click the pink button in the header.
+    *   *Action*: This forces the backend to DROP the current OPML cycle and restart scanning 1800+ feeds immediately.
+    *   *Result*: A modal appears with the absolute latest 10 items from around the world.
+4.  **Ask AI**: Use the search bar (e.g., "Shark Tank").
+    *   *Result*: The system aggregates relevant live items and generates a briefing.
 
 ---
 
-## Real-Time Streaming Functionality (Powered by Pathway)
+## 📂 Project Structure
 
-This application is built on top of the **[Pathway](https://github.com/pathwaycom/pathway) Live Data Framework**, a Python ETL framework for stream processing, real-time analytics, and RAG pipelines. Pathway's Rust-powered engine provides the high-performance backbone for our data ingestion.
-
-### 1. Pathway `ConnectorSubject` Architecture
-Each data source is implemented as a **Pathway Connector** by extending `pw.io.python.ConnectorSubject`. This allows us to define data streams as Python generators that Pathway's engine consumes:
-
-```python
-# Example from ingest/newsapi_connector.py
-import pathway as pw
-
-class NewsApiConnector(pw.io.python.ConnectorSubject):
-    def run(self):
-        while True:
-            # ... fetch from API ...
-            yield {
-                "source": "newsapi",
-                "text": article.get('title'),
-                "url": link,
-                # ...
-            }
-            time.sleep(900) # Poll interval
-```
-
-This design enables:
--   **Incremental Computation**: Pathway's differential dataflow engine processes only new or changed data, not the entire dataset.
--   **Scalability**: The underlying Rust engine supports multithreading, multiprocessing, and distributed computation, breaking free from Python's GIL limitations.
--   **Unified Batch/Stream**: The same Pathway code can read static files or live streams, making development and testing seamless.
-
-### 2. Live Data Stream Architecture
-All connectors (NewsAPI, GNews, HackerNews, Reddit, Firecrawl) run as continuous Pathway streams, feeding into a shared in-memory buffer:
--   **In-Memory Deque**: A thread-safe `collections.deque` acts as the "hot storage," holding the latest ~200 items for instant O(1) access by the RAG engine.
--   **Batch Persistence**: Items are periodically flushed to SQLite ("cold storage") for historical analysis.
-
-### 3. Frontend Polling & Caching
--   **`/data` Endpoint**: The frontend polls this endpoint every 60 seconds to refresh the "Global Pulse" sidebar with the latest items from the Pathway stream.
--   **`/fetch_news` Endpoint**: On-demand category fetches are cached in browser `localStorage` for an instant, app-like experience.
-
-### Why Pathway?
--   **Python-Native, Rust-Powered**: Write simple Python, get C-level performance.
--   **Built for RAG**: Native support for LLM pipelines, vector indexing, and real-time document processing.
--   **Production-Ready**: Designed for deployment with Docker and Kubernetes, with built-in monitoring dashboards.
+*   `app_pathway.py`: Main entry point, API, and Thread Manager.
+*   `ingest/`: Connector modules (OPML, NewsAPI, Reddit, etc.).
+*   `pipeline/`: RAG logic and LLM integration (`gemini_rag.py`).
+*   `frontend/`: Static HTML/JS UI (`index.html`).
+*   `data/`: SQLite database and local caches.
+*   `OPML_ARCHITECTURE.md`: Detailed docs for the ingestion engine.
 
 ---
 
-## API Endpoints
-
-The FastAPI backend exposes the following endpoints:
-
-| Endpoint | Method | Description | Response |
-|----------|--------|-------------|----------|
-| `/` | GET | Landing page with 3D visualization | HTML |
-| `/app` | GET | Main dashboard application | HTML |
-| `/data` | GET | Live stream data (news, social, stats) | JSON |
-| `/fetch_news` | POST | On-demand category fetch | JSON `{"items": [...]}` |
-| `/query` | POST | RAG-powered intelligent search | JSON `{"answer": ..., "sources": [...]}` |
-
-### Example: Query the RAG Pipeline
-```bash
-curl -X POST http://localhost:8000/query \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What is happening with AI?"}'
-```
-
----
-
-## Tech Stack
-
-| Category | Technology |
-|----------|------------|
-| **Stream Processing** | [Pathway](https://github.com/pathwaycom/pathway) (Rust-powered ETL) |
-| **Backend Framework** | FastAPI + Uvicorn |
-| **Language** | Python 3.10+ |
-| **LLM Orchestration** | Google Gemini 1.5 Pro, Groq (Llama 3.3) |
-| **Vector Database** | ChromaDB (In-Memory) |
-| **Embeddings** | Sentence-Transformers (`all-MiniLM-L6-v2`) |
-| **Data Sources** | NewsAPI, GNews, HackerNews, Reddit, Firecrawl, OPML (1800+ RSS) |
-| **Persistence** | SQLite |
-| **Frontend** | Native JS, HTML5, CSS Variables |
+## 📜 License
+MIT License. Built for the Pathway Datathon (and beyond).

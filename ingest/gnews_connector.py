@@ -1,7 +1,7 @@
 import time
 import requests
 import yaml
-import pathway as pw
+# import pathway as pw
 from pathlib import Path
 
 # Load config
@@ -16,7 +16,7 @@ try:
 except Exception as e:
     API_KEY = None
 
-class GNewsConnector(pw.io.python.ConnectorSubject):
+class GNewsConnector:
     def run(self):
         if not API_KEY or API_KEY == "your_gnews_api_key":
             print("⚠️ No GNews Key configured. Skipping...")
@@ -68,12 +68,12 @@ class GNewsConnector(pw.io.python.ConnectorSubject):
                 
             time.sleep(600)
 
-class GNewsSchema(pw.Schema):
-    source: str
-    text: str
-    url: str
-    created_utc: str
-    reliability: str
+# class GNewsSchema(pw.Schema):
+#     source: str
+#     text: str
+#     url: str
+#     created_utc: str
+#     reliability: str
 
 
 # --- ON-DEMAND HISTORICAL SEARCH ---

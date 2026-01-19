@@ -100,7 +100,10 @@ def startup():
     threading.Thread(target=run_connector, args=(FirecrawlConnector().run(), "firecrawl"), daemon=True).start()
     
     # 🚀 NUCLEAR OPTION: OPML Mass Ingestion (1800+ feeds) - High Frequency (10s)
-    threading.Thread(target=run_connector, args=(OPMLIngestor(DEFAULT_OPML_URLS, poll_frequency=10).run(), "opml"), daemon=True).start()
+    # 🚀 NUCLEAR OPTION: OPML Mass Ingestion (Global Instance for Refresh)
+    global global_opml
+    global_opml = OPMLIngestor(DEFAULT_OPML_URLS, poll_frequency=10)
+    threading.Thread(target=run_connector, args=(global_opml.run(), "opml"), daemon=True).start()
     
     print("✅ All streams active (including OPML Nuclear Ingestion)")
 
@@ -141,6 +144,14 @@ def dashboard():
 
 class QueryRequest(BaseModel):
     query: str
+
+@app.post("/refresh_opml")
+def refresh_opml_endpoint():
+    print("🔄 API: Manual OPML Refresh Requested")
+    if 'global_opml' in globals() and global_opml:
+        global_opml.manual_refresh()
+        return {"status": "triggered"}
+    return {"status": "error", "message": "OPML ingestor not active"}
 
 @app.post("/query")
 def query_endpoint(req: QueryRequest):

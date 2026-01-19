@@ -104,7 +104,7 @@ def query_gemini(system_prompt: str, user_prompt: str) -> dict:
         
     try:
         genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         full_prompt = f"{system_prompt}\n\n{user_prompt}"
         response = model.generate_content(full_prompt)
@@ -165,13 +165,13 @@ def pathway_rag_query(context_items: list, question: str) -> dict:
     
     # === STEP 3: Vector semantic search ===
     vector_matches = []
-    vs = get_vector_store()
-    if vs:
-        # Add fresh items to vector store
-        vs.add_items(fresh_items)
-        # Search for semantically similar items
-        vector_matches = vs.search(question, n_results=10, max_age_seconds=300)
-        print(f"🧠 Vector matches: {len(vector_matches)} items")
+    # vs = get_vector_store()
+    # if vs:
+    #     # Add fresh items to vector store
+    #     vs.add_items(fresh_items)
+    #     # Search for semantically similar items
+    #     vector_matches = vs.search(question, n_results=10, max_age_seconds=300)
+    #     print(f"🧠 Vector matches: {len(vector_matches)} items")
     
     # === STEP 4: Hybrid context (combine keyword + vector matches) ===
     seen_urls = set()

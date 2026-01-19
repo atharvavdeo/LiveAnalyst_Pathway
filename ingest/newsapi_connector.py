@@ -1,7 +1,7 @@
 import time
 import requests
 import yaml
-import pathway as pw
+# import pathway as pw
 from pathlib import Path
 from datetime import datetime
 
@@ -16,7 +16,7 @@ except Exception as e:
     API_KEY = None
     COUNTRY = "us"
 
-class NewsApiConnector(pw.io.python.ConnectorSubject):
+class NewsApiConnector:
     def run(self):
         if not API_KEY:
             print("⚠️ No NewsAPI Key configured. Skipping stream...")
@@ -65,18 +65,18 @@ class NewsApiConnector(pw.io.python.ConnectorSubject):
                 
             time.sleep(900) # Poll every 15 mins
 
-class NewsSchema(pw.Schema):
-    source: str
-    text: str
-    url: str
-    created_utc: str
-    reliability: str
-    category: str
-
-newsapi_table = pw.io.python.read(
-    NewsApiConnector(),
-    schema=NewsSchema
-)
+# class NewsSchema(pw.Schema):
+#     source: str
+#     text: str
+#     url: str
+#     created_utc: str
+#     reliability: str
+#     category: str
+# 
+# newsapi_table = pw.io.python.read(
+#     NewsApiConnector(),
+#     schema=NewsSchema
+# )
 
 # --- ON-DEMAND CATEGORY FETCH ---
 def fetch_category_newsapi(category: str) -> list:
