@@ -127,12 +127,16 @@ class OPMLSchema(pw.Schema):
     timestamp: float
 
 
-# Default OPML sources from awesome-rss-feeds repository (correct paths)
+# Default OPML sources from awesome-rss-feeds repository
+# Uses regex parsing to handle malformed XML in OPML files
 DEFAULT_OPML_URLS = [
+    # With category (higher quality feeds with proper categorization)
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Technology.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Programming.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/News.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Science.opml",
+    # Without category (additional tech feeds)
     "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/Tech.opml",
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/Programming.opml",
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/News.opml",
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/Science.opml",
 ]
 
 

@@ -41,9 +41,29 @@ Each data source is implemented as a **Pathway Connector** (`pw.io.python.Connec
 - **NewsAPI Streams**: Captures global breaking news and specific topic streams (e.g., "Fun/Viral" stream) in real-time.
 - **GNews Historical Bridge**: Provides on-demand access to a 3-year archive for deep context on geopolitical and economic queries.
 - **Social Firehose**: Ingests rapid-fire sentiment data from Reddit and HackerNews.
-- **🚀 OPML Mass Ingestor (Nuclear Option)**: Ingests **1,800+ categorized RSS feeds** from the [plenaryapp/awesome-rss-feeds](https://github.com/plenaryapp/awesome-rss-feeds) repository, parsing OPML files and polling all feeds continuously.
 - **Firecrawl Targeted Scraper**: Executes precision deep-web scraping for specific URLs or semantic targets.
 
+#### 🚀 OPML Mass Ingestor (Nuclear Option)
+The OPML connector ingests **200+ categorized RSS feeds** from the [plenaryapp/awesome-rss-feeds](https://github.com/plenaryapp/awesome-rss-feeds) repository, providing the highest velocity live data feed.
+
+**OPML Sources:**
+```python
+DEFAULT_OPML_URLS = [
+    # With category (higher quality feeds with proper categorization)
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Technology.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Programming.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/News.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Science.opml",
+    # Without category (additional tech feeds)
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/Tech.opml",
+]
+```
+
+**How it works:**
+1. Fetches OPML files from GitHub (XML format containing RSS feed URLs)
+2. Parses using **regex** (handles malformed XML gracefully)
+3. Polls each RSS feed every 5 minutes, yielding items to the Pathway stream
+4. Each item gets a `created_utc` timestamp at ingestion time for freshness tracking
 
 All incoming data is normalized into a unified Pathway schema before being routed to the storage layer. Pathway's Rust engine handles the parallelism, freeing us from Python's GIL limitations.
 
