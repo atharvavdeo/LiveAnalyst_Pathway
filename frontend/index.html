@@ -1295,23 +1295,39 @@
                 ];
 
                 const relevantLive = liveStreams.filter(item => {
-                    // ALWAYS include OPML items - they are curated RSS feeds
-                    if (item.source === 'opml') return true;
+                    const targetCat = category.toLowerCase();
+
+                    // OPML items: Filter by keyword in text or category
+                    if (item.source === 'opml') {
+                        // Check if OPML category matches
+                        if (item.category) {
+                            const opmlCat = item.category.toLowerCase();
+                            if (opmlCat.includes(targetCat) || targetCat.includes(opmlCat)) return true;
+                            // Map common categories
+                            if (targetCat === 'technology' && (opmlCat.includes('tech') || opmlCat.includes('programming'))) return true;
+                            if (targetCat === 'business' && (opmlCat.includes('business') || opmlCat.includes('finance'))) return true;
+                            if (targetCat === 'science' && opmlCat.includes('science')) return true;
+                        }
+                        // Check if text contains category keyword
+                        if (item.text) {
+                            const text = item.text.toLowerCase();
+                            if (text.includes(targetCat)) return true;
+                        }
+                        return false;  // OPML must match category
+                    }
 
                     // Include HN for technology
-                    if (item.source === 'hackernews' && category.toLowerCase() === 'technology') return true;
+                    if (item.source === 'hackernews' && targetCat === 'technology') return true;
 
                     // Category-based matching for other sources
                     if (item.category) {
                         const itemCat = item.category.toLowerCase();
-                        const targetCat = category.toLowerCase();
                         if (itemCat.includes(targetCat) || targetCat.includes(itemCat)) return true;
                     }
 
                     // Keyword matching in text for relevance
                     if (item.text) {
                         const text = item.text.toLowerCase();
-                        const targetCat = category.toLowerCase();
                         if (text.includes(targetCat)) return true;
                     }
 
