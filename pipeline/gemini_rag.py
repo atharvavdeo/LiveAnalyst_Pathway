@@ -169,17 +169,17 @@ def pathway_rag_query(context_items: list, question: str) -> dict:
     keyword_matches = filter_relevant_items(all_items, question)
     print(f"🔍 Keyword matches: {len(keyword_matches)} items")
     
-    # === STEP 4: Vector semantic search (ENABLED) ===
+    # === STEP 4: Vector semantic search (SEARCHES ALL CONTENT) ===
     vector_matches = []
     vs = get_vector_store()
     if vs:
-        # Add ALL live items to vector store
+        # Add ALL live items to vector store for IMMEDIATE indexing
         added = vs.add_items(list(fresh_items))
         if added > 0:
-            print(f"📥 Added {added} items to vector store")
-        # Search for semantically similar items (no time restriction)
-        vector_matches = vs.search(question, n_results=15, max_age_seconds=86400*7)  # 7 days
-        print(f"🧠 Vector matches: {len(vector_matches)} items")
+            print(f"📥 Added {added} items to vector store (TOTAL: {vs.count()})")
+        # Search ALL indexed content - NO TIME LIMIT
+        vector_matches = vs.search(question, n_results=20)
+        print(f"🧠 Vector matches: {len(vector_matches)} items from {vs.count()} total indexed")
     
     # === STEP 5: Hybrid context (combine all sources) ===
     seen_urls = set()

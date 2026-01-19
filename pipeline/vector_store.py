@@ -118,14 +118,14 @@ class VectorStore:
             
         return len(new_items)
     
-    def search(self, query: str, n_results: int = 10, max_age_seconds: int = 300) -> List[Dict]:
+    def search(self, query: str, n_results: int = 20) -> List[Dict]:
         """
-        Search for semantically similar items.
+        Search for semantically similar items - NO TIME LIMIT for true real-time RAG.
+        Searches ALL indexed content.
         
         Args:
             query: Search query
             n_results: Max number of results
-            max_age_seconds: Only return items newer than this (default 5 min)
             
         Returns:
             List of matching items with scores
@@ -139,20 +139,11 @@ class VectorStore:
         # Generate query embedding
         query_embedding = self.embedder.encode([query]).tolist()[0]
         
-        # Search with time filter
-        cutoff_time = time.time() - max_age_seconds
-        
+        # Search ALL content - NO TIME FILTER
         try:
             results = self.collection.query(
                 query_embeddings=[query_embedding],
-                n_results=min(n_results * 2, self.collection.count()),  # Get extra to filter
-                where={"created_utc": {"$gte": cutoff_time}}
-            )
-        except Exception:
-            # Fallback without time filter if metadata query fails
-            results = self.collection.query(
-                query_embeddings=[query_embedding],
-                n_results=n_results
+                n_results=min(n_results, self.collection.count())
             )
         
         # Format results
