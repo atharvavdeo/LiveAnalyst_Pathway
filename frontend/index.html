@@ -1297,23 +1297,31 @@
                 const relevantLive = liveStreams.filter(item => {
                     const targetCat = category.toLowerCase();
 
-                    // OPML items: Filter by keyword in text or category
+                    // For "general" or "all" - show everything
+                    if (targetCat === 'general' || targetCat === 'all' || targetCat === 'top') {
+                        return true;
+                    }
+
+                    // OPML items: More inclusive matching
                     if (item.source === 'opml') {
-                        // Check if OPML category matches
+                        // Check category field
                         if (item.category) {
                             const opmlCat = item.category.toLowerCase();
                             if (opmlCat.includes(targetCat) || targetCat.includes(opmlCat)) return true;
-                            // Map common categories
-                            if (targetCat === 'technology' && (opmlCat.includes('tech') || opmlCat.includes('programming'))) return true;
-                            if (targetCat === 'business' && (opmlCat.includes('business') || opmlCat.includes('finance'))) return true;
-                            if (targetCat === 'science' && opmlCat.includes('science')) return true;
+                            // Map categories
+                            if (targetCat === 'technology' && (opmlCat.includes('tech') || opmlCat.includes('programming') || opmlCat.includes('software') || opmlCat.includes('news'))) return true;
+                            if (targetCat === 'business' && (opmlCat.includes('business') || opmlCat.includes('finance') || opmlCat.includes('economy'))) return true;
+                            if (targetCat === 'science' && (opmlCat.includes('science') || opmlCat.includes('research'))) return true;
+                            if (targetCat === 'politics' && (opmlCat.includes('politics') || opmlCat.includes('government') || opmlCat.includes('news'))) return true;
                         }
-                        // Check if text contains category keyword
+                        // Check text for category keyword
                         if (item.text) {
                             const text = item.text.toLowerCase();
                             if (text.includes(targetCat)) return true;
                         }
-                        return false;  // OPML must match category
+                        // For "technology" category, include most tech-related OPML by default
+                        if (targetCat === 'technology') return true;
+                        return false;
                     }
 
                     // Include HN for technology
