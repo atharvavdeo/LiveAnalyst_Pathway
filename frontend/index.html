@@ -1330,16 +1330,30 @@
                     }
                 }
 
-                // 4. Sort by Date (Newest First)
-                uniqueItems.sort((a, b) => {
-                    const tA = new Date(a.created_utc || 0).getTime();
-                    const tB = new Date(b.created_utc || 0).getTime();
-                    return tB - tA;
-                });
+                // 4. ORGANIZE: GNews/NewsAPI first (5), then OPML with "Latest" tag
+                const gnewsItems = uniqueItems.filter(i => i.source === 'gnews' || i.source === 'newsapi' || i.source === 'newsapi_search');
+                const opmlItems = uniqueItems.filter(i => i.source === 'opml');
+                const otherItems = uniqueItems.filter(i => !['gnews', 'newsapi', 'newsapi_search', 'opml'].includes(i.source));
 
-                if (uniqueItems.length > 0) {
-                    renderMainFeed(uniqueItems);
-                    localStorage.setItem(storageKey, JSON.stringify(uniqueItems));
+                // Sort each group by date
+                const sortByDate = (a, b) => new Date(b.created_utc || 0) - new Date(a.created_utc || 0);
+                gnewsItems.sort(sortByDate);
+                opmlItems.sort(sortByDate);
+                otherItems.sort(sortByDate);
+
+                // Tag OPML items with "isLive" marker for UI
+                opmlItems.forEach(item => { item.isLive = true; });
+
+                // Combine: First 5 GNews/NewsAPI, then all OPML, then others
+                const organizedItems = [
+                    ...gnewsItems.slice(0, 5),
+                    ...opmlItems.slice(0, 15),  // Up to 15 OPML items
+                    ...otherItems.slice(0, 5)
+                ];
+
+                if (organizedItems.length > 0) {
+                    renderMainFeed(organizedItems);
+                    localStorage.setItem(storageKey, JSON.stringify(organizedItems));
                     document.getElementById("refresh-indicator").innerText = "Live";
                 } else if (!cached) {
                     listContainer.innerHTML = `<p style="text-align:center; padding:40px;">No recent news found for ${category}.</p>`;
@@ -1397,8 +1411,18 @@
             listContainer.innerHTML = listItems.map((item, idx) => {
                 const img = item.image_url || 'https://via.placeholder.com/200x130?text=No+Image';
                 const isSaved = isBookmarked(item.url);
-                const itemText = stripHtml(item.text);
+
+                // CLEAN headline: Remove summary after " - " for OPML items
+                let itemText = stripHtml(item.text);
+                if (item.source === 'opml' && itemText.includes(' - ')) {
+                    itemText = itemText.split(' - ')[0];  // Keep only the headline part
+                }
+
                 const itemDesc = stripHtml(item.description || "Click to read full coverage...");
+
+                // Add "Latest" badge for OPML items
+                const latestBadge = item.isLive ?
+                    `<span style="background:#ff4757; color:white; padding:3px 8px; border-radius:4px; font-size:0.7rem; font-weight:700; margin-right:8px;">🔴 LATEST</span>` : '';
 
                 return `
                 <div class="feed-item" style="position:relative;" onclick="window.open('${item.url}', '_blank')">
@@ -1414,7 +1438,7 @@
                         <h3>${itemText}</h3>
                         <p>${itemDesc}</p>
                         <div class="meta-line" style="margin-top:10px; font-size:0.75rem;">
-                             ${calculateTimeAgo(item.created_utc)}
+                             ${latestBadge}${calculateTimeAgo(item.created_utc)}
                         </div>
                     </div>
                 </div>
