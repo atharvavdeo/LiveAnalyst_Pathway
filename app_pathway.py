@@ -199,11 +199,12 @@ def get_data():
         items = list(data_store["items"])
         
         return {
-            "newsdata": [i for i in items if i['source'] == 'newsdata'][-20:],
+            "newsapi": [i for i in items if i['source'] == 'newsapi'][-20:],
             "gnews": [i for i in items if i['source'] == 'gnews'][-20:],
             "hackernews": [i for i in items if i['source'] == 'hackernews'][-20:],
             "reddit": [i for i in items if i['source'] == 'reddit'][-20:],
             "firecrawl": [i for i in items if i['source'] == 'firecrawl'][-20:],
+            "opml": [i for i in items if i['source'] == 'opml'][-20:],
             "stats": data_store["stats"]
         }
 

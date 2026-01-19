@@ -811,10 +811,11 @@
                 // Combine all sources and get 5 most recent
                 const allItems = [
                     ...(data.gnews || []),
-                    ...(data.newsdata || []),
+                    ...(data.newsapi || []),
                     ...(data.hackernews || []),
                     ...(data.reddit || []),
-                    ...(data.firecrawl || [])
+                    ...(data.firecrawl || []),
+                    ...(data.opml || [])
                 ];
 
                 // Sort by timestamp (most recent first)

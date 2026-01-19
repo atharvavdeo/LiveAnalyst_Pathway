@@ -71,11 +71,12 @@ class OPMLIngestor(pw.io.python.ConnectorSubject):
                             # Yield normalized schema for Pathway
                             yield {
                                 "text": f"{entry.title} - {entry.get('summary', '')[:300]}",
-                                "source": feed.feed.get('title', 'Unknown Source'),
+                                "source": "opml",  # Consistent source name for filtering
                                 "category": category,
                                 "url": entry.link,
                                 "reliability": "High",  # RSS is generally reliable
-                                "timestamp": time.time()
+                                "created_utc": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                                "feed_title": feed.feed.get('title', 'Unknown')
                             }
                 except Exception:
                     continue  # Skip broken feeds
@@ -97,12 +98,12 @@ class OPMLSchema(pw.Schema):
     timestamp: float
 
 
-# Default OPML sources from awesome-rss-feeds repository
+# Default OPML sources from awesome-rss-feeds repository (correct paths)
 DEFAULT_OPML_URLS = [
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/categories/programming.opml",
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/categories/technology.opml",
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/categories/news.opml",
-    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/categories/science.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/Tech.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/Programming.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/News.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/Science.opml",
 ]
 
 
