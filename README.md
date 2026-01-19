@@ -84,10 +84,10 @@ This subsystem ensures that the platform has access to a massive, uncensored str
 sequenceDiagram
     participant User as "Frontend (User)"
     participant API as "FastAPI (/refresh_opml)"
-    participant Thread as "OPML Thread"
-    participant Engine as "OPMLIngestor"
+    participant Thread as "Pathway Thread Manager"
+    participant Engine as "Pathway Connector (OPML)"
     participant Web as "The Internet"
-    participant Store as "DataStore"
+    participant Store as "Pathway Stream Buffer"
 
     Note over Thread, Web: Default State: Background Loop
     Thread->>Engine: Loop through feeds...
