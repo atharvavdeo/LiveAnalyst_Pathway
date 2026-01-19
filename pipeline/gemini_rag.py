@@ -149,33 +149,39 @@ def query_groq_fallback(system_prompt: str, user_prompt: str) -> dict:
 def pathway_rag_query(context_items: list, question: str) -> dict:
     """
     Enhanced RAG query with:
-    1. Freshness filtering (< 5 min)
-    2. Keyword relevance filtering
+    1. Historical database search (ALL stored content)
+    2. Live stream items
     3. Vector semantic search
     4. Hybrid context building
     """
     
-    # === STEP 1: Filter fresh items (< 6 hours old) ===
-    fresh_items = filter_fresh_items(context_items, max_age_seconds=21600)  # 6 hours
-    print(f"📊 Freshness filter: {len(context_items)} → {len(fresh_items)} items")
+    # === STEP 1: Search Historical Database (ALL content from all sources) ===
+    from data.database import search_history
+    db_results = search_history(question, limit=20)
+    print(f"📚 Database search: {len(db_results)} historical items")
     
-    # === STEP 2: Keyword relevance filter ===
-    keyword_matches = filter_relevant_items(fresh_items, question)
+    # === STEP 2: Get fresh live items (no time filter - use ALL context) ===
+    fresh_items = context_items  # Use ALL live items, no freshness filter
+    print(f"📡 Live stream: {len(fresh_items)} items")
+    
+    # === STEP 3: Keyword relevance filter on combined content ===
+    all_items = list(fresh_items) + db_results
+    keyword_matches = filter_relevant_items(all_items, question)
     print(f"🔍 Keyword matches: {len(keyword_matches)} items")
     
-    # === STEP 3: Vector semantic search (ENABLED) ===
+    # === STEP 4: Vector semantic search (ENABLED) ===
     vector_matches = []
     vs = get_vector_store()
     if vs:
-        # Add fresh items to vector store for future queries
-        added = vs.add_items(fresh_items)
+        # Add ALL live items to vector store
+        added = vs.add_items(list(fresh_items))
         if added > 0:
             print(f"📥 Added {added} items to vector store")
-        # Search for semantically similar items
-        vector_matches = vs.search(question, n_results=10, max_age_seconds=21600)  # 6 hours
+        # Search for semantically similar items (no time restriction)
+        vector_matches = vs.search(question, n_results=15, max_age_seconds=86400*7)  # 7 days
         print(f"🧠 Vector matches: {len(vector_matches)} items")
     
-    # === STEP 4: Hybrid context (combine keyword + vector matches) ===
+    # === STEP 5: Hybrid context (combine all sources) ===
     seen_urls = set()
     hybrid_context = []
     
@@ -193,8 +199,15 @@ def pathway_rag_query(context_items: list, question: str) -> dict:
             seen_urls.add(url)
             hybrid_context.append(item)
     
-    # Priority 3: Fill remaining with fresh items
-    for item in fresh_items[:10]:
+    # Priority 3: Database historical results
+    for item in db_results[:10]:
+        url = item.get('url', '')
+        if url not in seen_urls:
+            seen_urls.add(url)
+            hybrid_context.append(item)
+    
+    # Priority 4: Fill remaining with live items
+    for item in list(fresh_items)[:10]:
         url = item.get('url', '')
         if url not in seen_urls:
             seen_urls.add(url)
