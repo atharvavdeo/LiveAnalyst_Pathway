@@ -99,8 +99,8 @@ def startup():
     threading.Thread(target=run_connector, args=(RedditConnector().run(), "reddit"), daemon=True).start()
     threading.Thread(target=run_connector, args=(FirecrawlConnector().run(), "firecrawl"), daemon=True).start()
     
-    # 🚀 NUCLEAR OPTION: OPML Mass Ingestion (1800+ feeds)
-    threading.Thread(target=run_connector, args=(OPMLIngestor(DEFAULT_OPML_URLS).run(), "opml"), daemon=True).start()
+    # 🚀 NUCLEAR OPTION: OPML Mass Ingestion (1800+ feeds) - High Frequency (10s)
+    threading.Thread(target=run_connector, args=(OPMLIngestor(DEFAULT_OPML_URLS, poll_frequency=10).run(), "opml"), daemon=True).start()
     
     print("✅ All streams active (including OPML Nuclear Ingestion)")
 

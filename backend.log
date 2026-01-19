@@ -1,0 +1,38 @@
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/fs/__init__.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  __import__("pkg_resources").declare_namespace(__name__)  # type: ignore
+/Users/atharvadeo/Desktop/PROF/Hackies/PathwayDatathon IITKGP/path/LiveSocialAnalyst/app_pathway.py:89: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+✅ SQLite Database initialized at /Users/atharvadeo/Desktop/PROF/Hackies/PathwayDatathon IITKGP/path/LiveSocialAnalyst/data/news_archive.db
+INFO:     Started server process [29264]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+==================================================
+🚀 LiveSocialAnalyst - Hybrid Architecture (DB + Live)
+==================================================
+📡 Starting stream: newsapi
+📡 Starting stream: gnews
+📡 Starting stream: hackernews
+📡 Starting stream: reddit
+⚠️ Reddit credentials missing or placeholder. Streaming disabled.
+📡 Starting stream: firecrawl
+📡 Starting stream: opml
+🔄 Refreshing source lists from 5 OPML files...
+✅ All streams active (including OPML Nuclear Ingestion)
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+💾 gnews: Saved 8 items to DB
+🌍 GNews: Fetched 10 articles
+✅ Loaded 217 active feeds.
+🚀 OPML: Starting to parse 217 RSS feeds...
+📰 OPML: Yielded 10 items so far...
+💾 opml: Saved 1 items to DB
+📰 OPML: Yielded 20 items so far...
+💾 opml: Saved 1 items to DB
+📰 OPML: Yielded 30 items so far...
+💾 opml: Saved 3 items to DB
+INFO:     127.0.0.1:55500 - "GET /data HTTP/1.1" 200 OK
