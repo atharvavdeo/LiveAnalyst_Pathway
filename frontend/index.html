@@ -1090,8 +1090,15 @@
                     document.getElementById("ai-answer-box").innerHTML = `<p style='font-size:1.1rem; line-height:1.6;'>${answerText}</p>`;
 
                     if (sources && sources.length > 0) {
-                        document.getElementById("search-results-list").innerHTML = sources.map(item => `
-                            <div class="feed-item" onclick="window.open('${item.url}', '_blank')">
+                        document.getElementById("search-results-list").innerHTML = sources.map(item => {
+                            const isSaved = isBookmarked(item.url);
+                            return `
+                            <div class="feed-item" style="position:relative;" onclick="window.open('${item.url}', '_blank')">
+                                <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" style="top:5px; right:5px;" onclick="event.stopPropagation(); addBookmark(JSON.parse('${JSON.stringify(item).replace(/'/g, "\\'")}'))">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                                    </svg>
+                                </button>
                                  <div class="feed-thumb" style="width:100px; height:80px;">
                                     <img src="${item.image_url || 'https://via.placeholder.com/100'}" alt="Thumb" style="width:100%;height:100%;object-fit:cover;">
                                 </div>
@@ -1100,7 +1107,7 @@
                                     <div class="meta-line">${item.source} • ${calculateTimeAgo(item.created_utc)}</div>
                                 </div>
                             </div>
-                        `).join('');
+                        `}).join('');
                     } else {
                         document.getElementById("search-results-list").innerHTML = '<p style="text-align:center; padding:20px;">No specific sources found.</p>';
                     }
@@ -1295,9 +1302,15 @@
             // 1. Render Hero (First Item)
             const heroItem = items[0];
             const heroImage = heroItem.image_url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80';
+            const heroIsSaved = isBookmarked(heroItem.url);
 
             heroContainer.innerHTML = `
-                <div class="hero-article" onclick="window.open('${heroItem.url}', '_blank')">
+                <div class="hero-article" style="position:relative;" onclick="window.open('${heroItem.url}', '_blank')">
+                    <button class="bookmark-icon-btn ${heroIsSaved ? 'saved' : ''}" style="top:20px; right:20px; width:48px; height:48px;" onclick="event.stopPropagation(); addBookmark(JSON.parse('${JSON.stringify(heroItem).replace(/'/g, "\\'")}'))">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                        </svg>
+                    </button>
                     <div class="hero-image-wrap">
                         <img src="${heroImage}" alt="Hero Image">
                     </div>
@@ -1312,10 +1325,16 @@
 
             // 2. Render List (Remaining Items)
             const listItems = items.slice(1);
-            listContainer.innerHTML = listItems.map(item => {
+            listContainer.innerHTML = listItems.map((item, idx) => {
                 const img = item.image_url || 'https://via.placeholder.com/200x130?text=No+Image';
+                const isSaved = isBookmarked(item.url);
                 return `
-                <div class="feed-item" onclick="window.open('${item.url}', '_blank')">
+                <div class="feed-item" style="position:relative;" onclick="window.open('${item.url}', '_blank')">
+                    <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" style="top:5px; right:5px;" onclick="event.stopPropagation(); addBookmark(JSON.parse('${JSON.stringify(item).replace(/'/g, "\\'")}'))">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                        </svg>
+                    </button>
                     <div class="feed-thumb">
                         <img src="${img}" alt="News Thumb">
                     </div>
