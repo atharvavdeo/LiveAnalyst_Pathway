@@ -1,73 +1,89 @@
-# Live Social Analyst | 24/7 Real-Time Intelligence
+# Live Social Analyst | Real-Time Pathway ETL Intelligence
 
+[![Pathway](https://img.shields.io/badge/Powered%20by-Pathway-blue)](https://github.com/pathwaycom/pathway)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-green)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)](https://fastapi.tiangolo.com)
 [![Groq](https://img.shields.io/badge/AI-Groq%20Llama%203-orange)](https://groq.com)
 [![Gemini](https://img.shields.io/badge/AI-Gemini%201.5-blue)](https://deepmind.google/technologies/gemini/)
 
-**Live Social Analyst** is a high-performance, real-time intelligence engine designed to aggregate, deduplicate, and analyze global information streams instantly. It combines a massive ingestion network (1800+ RSS feeds, NewsAPI, GNews, Reddit, HackerNews) with a Hybrid RAG (Retrieval-Augmented Generation) pipeline to answer complex queries like "What is happening with Shark Tank right now?" with verifiable sources.
+**Live Social Analyst** is a real-time intelligence engine built on the **Pathway Live Data Framework**. It aggregates, deduplicates, and analyzes global information streams instantly using Pathway's reactive data processing capabilities. It combines a massive ingestion network with a Hybrid RAG (Retrieval-Augmented Generation) pipeline to answer complex queries with verifiable sources.
 
-## 🚀 Key Features
+## Pathway ETL Architecture
 
-*   **☢️ "Nuclear Option" Ingestion**: Simultaneously streams data from **1800+ Global RSS feeds** (OPML) alongside premium APIs.
-*   **🔴 Real-Time "Fetch Live"**: Front-end button triggers an immediate, interrupt-driven refresh of the backend engine, ensuring sub-second data freshness.
-*   **🧠 Hybrid RAG Pipeline**:
-    *   **Retrieval**: Combines live memory buffers (Hot) with historical SQLite storage (Cold).
-    *   **Generation**: Uses **Gemini 1.5 Flash** with automatic failover to **Groq (Llama 3)** for resilience.
-*   **🛡️ Intelligent Deduplication**: Filter logic removes duplicate stories across different sources to keep the feed clean.
-*   **🏷️ Topic isolation**: Strict category filtering allows users to isolate streams without noise.
+The core of the application is a **Pathway ETL Pipeline** that unifies diverse data streams into a single reliable source of truth. Unlike traditional batch processing, Pathway enables:
 
----
-
-## 🏗️ System Architecture
-
-The system uses a **Multithreaded Producer-Consumer Architecture** to handle high-velocity data without blocking the API.
+*   **Unified Streaming**: All data sources (NewsAPI, GNews, Reddit, OPML) are treated as continuous streams.
+*   **Real-Time Reactivity**: The system updates its state immediately upon receiving new data points.
+*   **In-Memory Processing**: Leveraging Pathway's high-performance engine for sub-second latency.
 
 ### Architecture Diagram
 ```mermaid
-graph TD
-    User["User Frontend"] -->|"Polls/Fetch"| API["FastAPI Backend"]
-    User -->|"Query Shark Tank"| RAG["Analysis Pipeline"]
+graph LR
+    %% Node Styles
+    classDef source fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef buffer fill:#fff3e0,stroke:#ff6f00,stroke-width:2px,stroke-dasharray: 5 5;
+    classDef ai fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef app fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
 
-    subgraph "Ingestion Engine"
-        NewsAPI["NewsAPI.org"] -->|"Thread 1"| Buffer["Live Memory Deque"]
-        GNews["GNews.io"] -->|"Thread 2"| Buffer
-        Social["Reddit/HN"] -->|"Thread 3"| Buffer
-        OPML["OPML Nuclear 1800 Plus"] -->|"Thread 4 Global"| Buffer
+    User([User Frontend]):::app
+    API[FastAPI Backend]:::app
+
+    subgraph Inputs ["Data Ingestion Streams"]
+        direction TB
+        News[NewsAPI]:::source
+        GNews[GNews]:::source
+        Social[Reddit/HN]:::source
+        OPML[OPML 1800+]:::source
     end
 
-    subgraph "Control Plane"
-        User -->|"Click Fetch Live"| RefreshEP["/refresh_opml"]
-        RefreshEP -->|"Signal"| OPML
-        OPML -->|"Force Restart"| Web["The Internet"]
+    subgraph Core ["Pathway ETL Engine"]
+        Buffer[(Live Stream Buffer)]:::buffer
     end
 
-    subgraph "AI Synthesis"
-        Buffer -->|"Context"| LLM["Gemini / Groq"]
-        LLM -->|"Summary"| API
+    subgraph Brain ["AI & Analysis"]
+        direction TB
+        RAG[RAG Pipeline]:::ai
+        LLM[Gemini / Groq]:::ai
     end
+
+    %% Data Flow
+    News & GNews & Social & OPML --> Buffer
+    Buffer --> RAG
+
+    %% app Flow
+    User -->|Query| RAG
+    RAG -->|Context| LLM
+    LLM -->|Summary| API
+    API -->|Response| User
+
+    %% Control Flow
+    User -.->|Fetch Live| API
+    API -.->|Restart Signal| OPML
 ```
 
-### 1. Ingestion Layer
-Instead of relying on heavy external frameworks, we implemented a custom **Python Threading** engine. Each connector (News, Social, OPML) runs in its own daemon thread, fetching data and pushing it to a thread-safe `deque`.
+## Key Features
 
-### 2. RAG & AI Layer
-*   **Model A (Primary)**: Gemini 1.5 Flash (Google) - Fast, large context.
-*   **Model B (Fallback)**: Groq (Llama 3.3 70B) - Ultra-low latency inference.
+*   **Pathway-Powered Connectors**: Seamless integration of multiple data sources into a unified ETL pipeline.
+*   **High-Throughput Ingestion**: Simultaneously streams data from **1800+ Global RSS feeds** (OPML) alongside premium APIs.
+*   **Real-Time Fetch**: Front-end trigger for immediate, interrupt-driven refresh of the ingestion engine, ensuring sub-second data freshness.
+*   **Hybrid RAG Pipeline**:
+    *   **Retrieval**: Combines live memory buffers with historical SQLite storage.
+    *   **Generation**: Uses **Gemini 1.5 Flash** with automatic failover to **Groq**.
+*   **Intelligent Deduplication**: Deduplication logic to remove duplicate stories across different sources.
 
 ---
 
-## ☢️ OPML "Nuclear Option" Architecture
+## High-Throughput OPML Architecture
 
 This subsystem ensures that the platform has access to a massive, uncensored stream of global information by processing **1800+ global RSS feeds** in real-time.
 
 ### Core Components
-1.  **`OPMLIngestor` Class (`ingest/opml_loader.py`)**:
+1.  **OPMLIngestor Class**:
     *   **Role**: The engine core. Downloads OPML lists from GitHub, manages feed URLs.
-    *   **Real-Time Trigger**: Listens for a `force_restart` flag to break loops and fetch fresh data instantly.
+    *   **Real-Time Trigger**: Listens for a restart flag to break loops and fetch fresh data instantly.
 
-2.  **Global Thread Manager (`app_pathway.py`)**:
-    *   **Role**: Instantiates a **Global Instance** of `OPMLIngestor` at startup to maintain state.
+2.  **Global Thread Manager**:
+    *   **Role**: Instantiates a Global Instance of the ingestor at startup to maintain state.
 
 ### OPML Data Flow Diagram
 ```mermaid
@@ -76,8 +92,8 @@ sequenceDiagram
     participant API as "FastAPI (/refresh_opml)"
     participant Thread as "OPML Thread"
     participant Engine as "OPMLIngestor"
-    participant Web as "The Internet (1800+ Feeds)"
-    participant Store as "DataStore (RAM)"
+    participant Web as "The Internet"
+    participant Store as "DataStore"
 
     Note over Thread, Web: Default State: Background Loop
     Thread->>Engine: Loop through feeds...
@@ -86,29 +102,24 @@ sequenceDiagram
     Engine->>Store: Yield New Items
 
     User->>API: Click "Fetch Live"
-    API->>Engine: manual_refresh() (Set Flag)
+    API->>Engine: manual_refresh()
     API-->>User: 200 OK
     
-    Note over Engine: Check Flag -> True!
-    Engine->>Thread: BREAK Loop & RESTART
+    Note over Engine: Check Flag -> True
+    Engine->>Thread: RESTART Loop
     
     Thread->>Engine: Start Fresh Cycle
     Engine->>Web: Fetch Priority Feeds
     Web-->>Engine: Fresh XML
-    Engine->>Store: Yield VERY FRESH Items
+    Engine->>Store: Yield FRESH Items
     
-    User->>Store: Fetch /data (after delay)
+    User->>Store: Fetch /data
     Store-->>User: Return Top 10 Live Items
 ```
 
-### Key Technical Decisions
-*   **Generator-Based Ingestion**: The `run()` method yields items one by one.
-*   **Deduplication**: Maintains a `seen_entries` set to prevent duplicates.
-*   **Shuffle Logic**: Feeds are shuffled on every cycle to ensure variety.
-
 ---
 
-## 🛠️ Installation & Usage
+## Installation & Usage
 
 ### Prerequisites
 *   Python 3.10+
@@ -130,24 +141,24 @@ python3 app_pathway.py
 Open `frontend/index.html` in your browser, or visit: `http://localhost:8000/app`
 
 ### 4. How to Use
-1.  **View Feed**: The main page shows a "Verge-style" Bento grid.
+1.  **View Feed**: The main page shows a Bento grid of top news.
 2.  **Filter Topics**: Click "Business", "Tech", etc.
-3.  **🔴 Fetch Live**: Click the pink button in the header.
-    *   *Action*: Forces backend restart of OPML scanning.
+3.  **Fetch Live**: Click the button in the header.
+    *   *Action*: Forces restart of OPML scanning.
     *   *Result*: Modal with latest 10 items.
-4.  **Ask AI**: Use the search bar (e.g., "Shark Tank").
+4.  **Ask AI**: Use the search bar for queries.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
-*   `app_pathway.py`: Main entry point, API, and Thread Manager.
-*   `ingest/`: Connector modules (OPML, NewsAPI, Reddit, etc.).
-*   `pipeline/`: RAG logic and LLM integration (`gemini_rag.py`).
-*   `frontend/`: Static HTML/JS UI (`index.html`).
+*   `app_pathway.py`: Main entry point and Pathway configuration.
+*   `ingest/`: Connector modules.
+*   `pipeline/`: RAG logic and LLM integration.
+*   `frontend/`: Static HTML/JS UI.
 *   `data/`: SQLite database and local caches.
 
 ---
 
-## 📜 License
+## License
 MIT License.
