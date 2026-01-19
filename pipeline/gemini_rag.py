@@ -155,8 +155,8 @@ def pathway_rag_query(context_items: list, question: str) -> dict:
     4. Hybrid context building
     """
     
-    # === STEP 1: Filter fresh items (< 5 minutes old) ===
-    fresh_items = filter_fresh_items(context_items, max_age_seconds=300)
+    # === STEP 1: Filter fresh items (< 6 hours old) ===
+    fresh_items = filter_fresh_items(context_items, max_age_seconds=21600)  # 6 hours
     print(f"📊 Freshness filter: {len(context_items)} → {len(fresh_items)} items")
     
     # === STEP 2: Keyword relevance filter ===

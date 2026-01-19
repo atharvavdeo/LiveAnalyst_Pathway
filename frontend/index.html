@@ -1477,20 +1477,30 @@
                 const response = await fetch(API_BASE + '/data');
                 const data = await response.json();
 
-                // Aggregate all sources
+                // Aggregate all sources - OPML FIRST (freshest from manual trigger)
                 const allItems = [
+                    ...(data.opml || []),
                     ...(data.newsapi || []),
                     ...(data.gnews || []),
-                    ...(data.opml || []),
                     ...(data.firecrawl || []),
                     ...(data.reddit || []),
                     ...(data.hackernews || [])
                 ];
 
+                // === STRICT FRESHNESS FILTER: Only items < 6 hours old ===
+                const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
+                const now = Date.now();
+                const freshItems = allItems.filter(item => {
+                    if (!item.created_utc) return true; // Include items without timestamp
+                    const itemTime = new Date(item.created_utc).getTime();
+                    return (now - itemTime) < SIX_HOURS_MS;
+                });
+                console.log(`Freshness filter: ${allItems.length} -> ${freshItems.length} items`);
+
                 // Deduplicate by URL and Text
                 const uniqueItems = [];
                 const seen = new Set();
-                allItems.forEach(item => {
+                freshItems.forEach(item => {
                     const key = (item.url || '') + '|' + (item.text || '').substring(0, 50);
                     if (!seen.has(key)) {
                         seen.add(key);
