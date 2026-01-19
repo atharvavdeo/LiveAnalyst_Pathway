@@ -6,8 +6,7 @@ import requests
 import feedparser
 import time
 import random
-import defusedxml.ElementTree as ET
-from io import BytesIO
+import re
 
 
 class OPMLIngestor(pw.io.python.ConnectorSubject):
@@ -24,16 +23,28 @@ class OPMLIngestor(pw.io.python.ConnectorSubject):
         self.seen_entries = set()
 
     def _parse_opml(self, content):
-        """Recursively extracts xmlUrls from OPML content"""
+        """Extracts xmlUrls from OPML content using regex (lenient parsing)"""
         try:
-            tree = ET.parse(BytesIO(content))
-            root = tree.getroot()
-            # Find all 'outline' elements with an 'xmlUrl' attribute
-            for outline in root.findall(".//outline[@xmlUrl]"):
-                url = outline.get("xmlUrl")
-                category = outline.get("text") or outline.get("title") or "General"
-                if url:
+            # Decode content if bytes
+            text = content.decode('utf-8', errors='ignore') if isinstance(content, bytes) else content
+            
+            # Use regex to find all xmlUrl attributes (handles malformed XML)
+            pattern = r'xmlUrl="([^"]+)"[^>]*(?:text="([^"]*)")?'
+            matches = re.findall(pattern, text)
+            
+            for match in matches:
+                url = match[0]
+                category = match[1] if len(match) > 1 and match[1] else "General"
+                if url and url.startswith('http'):
                     self.feed_urls.add((url, category))
+                    
+            # Also try alternate pattern
+            pattern2 = r'<outline[^>]+xmlUrl="([^"]+)"[^>]*>'
+            for url_match in re.finditer(pattern2, text):
+                url = url_match.group(1)
+                if url and url.startswith('http'):
+                    self.feed_urls.add((url, "RSS"))
+                    
         except Exception as e:
             print(f"⚠️ OPML Parse Error: {e}")
 
@@ -53,24 +64,41 @@ class OPMLIngestor(pw.io.python.ConnectorSubject):
         # Initial Load
         self._refresh_sources()
         
+        if not self.feed_urls:
+            print("⚠️ OPML: No feeds loaded, streaming disabled.")
+            while True:
+                yield None  # Keep generator alive
+                time.sleep(3600)
+        
+        print(f"🚀 OPML: Starting to parse {len(self.feed_urls)} RSS feeds...")
+        
         while True:
             # Convert set to list and shuffle to avoid hammering one server
             feeds = list(self.feed_urls)
             random.shuffle(feeds)
+            items_yielded = 0
 
-            for url, category in feeds:
+            for idx, (url, category) in enumerate(feeds):
                 try:
-                    # Parse the individual RSS feed
+                    # Parse the individual RSS feed with timeout
                     feed = feedparser.parse(url)
+                    
+                    if not feed.entries:
+                        continue
                     
                     # Process top 3 entries to keep latency low
                     for entry in feed.entries[:3]:
-                        if entry.link not in self.seen_entries:
+                        if hasattr(entry, 'link') and entry.link not in self.seen_entries:
                             self.seen_entries.add(entry.link)
+                            items_yielded += 1
+                            
+                            # Log progress every 10 items
+                            if items_yielded % 10 == 0:
+                                print(f"📰 OPML: Yielded {items_yielded} items so far...")
                             
                             # Yield normalized schema for Pathway
                             yield {
-                                "text": f"{entry.title} - {entry.get('summary', '')[:300]}",
+                                "text": f"{entry.get('title', 'Untitled')} - {entry.get('summary', '')[:300]}",
                                 "source": "opml",  # Consistent source name for filtering
                                 "category": category,
                                 "url": entry.link,
@@ -78,12 +106,13 @@ class OPMLIngestor(pw.io.python.ConnectorSubject):
                                 "created_utc": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
                                 "feed_title": feed.feed.get('title', 'Unknown')
                             }
-                except Exception:
+                except Exception as e:
                     continue  # Skip broken feeds
                 
                 # Tiny sleep to be a "polite" crawler
-                time.sleep(0.1)
+                time.sleep(0.05)  # Reduced from 0.1
 
+            print(f"✅ OPML: Completed cycle, yielded {items_yielded} new items. Sleeping {self.poll_frequency}s...")
             # Wait before restarting the massive loop
             time.sleep(self.poll_frequency)
 
