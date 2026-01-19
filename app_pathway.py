@@ -156,28 +156,44 @@ def refresh_opml_endpoint():
 @app.post("/query")
 def query_endpoint(req: QueryRequest):
     print(f"🔎 Received Query: {req.query}")
+    used_web_fallback = False
     
-    # 1. Get snapshot of live live stream (Fastest)
+    # === STEP 1: Get snapshot of live stream (PRIMARY SOURCE) ===
     with data_lock:
         live_snapshot = list(data_store["items"])
+    print(f"📊 Live stream snapshot: {len(live_snapshot)} items")
     
-    # 2. Search History from DB (Local Persisted)
+    # === STEP 2: Pre-filter live data for relevance ===
+    query_words = set(req.query.lower().split())
+    relevant_live = []
+    for item in live_snapshot:
+        text = (item.get('text', '') + ' ' + item.get('url', '')).lower()
+        if any(word in text for word in query_words):
+            relevant_live.append(item)
+    print(f"🎯 Relevant live matches: {len(relevant_live)} items")
+    
+    # === STEP 3: Get DB history (always available) ===
     db_history = search_history(req.query, limit=10)
     print(f"📚 DB History matches: {len(db_history)}")
     
-    # 3. On-Demand Fetch (Slower, but targeted)
-    #    Run specific search for user query if it's substantial
+    # === STEP 4: Determine if we need web fallback ===
+    # Only trigger Firecrawl if live + DB combined have < 5 relevant items
     on_demand_items = []
-    if len(req.query) > 3:
+    MIN_RELEVANT_THRESHOLD = 5
+    
+    if len(relevant_live) + len(db_history) < MIN_RELEVANT_THRESHOLD and len(req.query) > 3:
+        print("⚠️ Insufficient live data, triggering web fallback...")
+        used_web_fallback = True
+        
         # Trigger GNews Historical Search
         hist_news = search_historical(req.query, days=1000)
         
-        # FALLBACK: If GNews fails (geo-politics limitation), try NewsAPI
+        # FALLBACK: If GNews fails, try NewsAPI
         if not hist_news:
             print("⚠️ GNews empty, trying NewsAPI Fallback...")
             hist_news = search_newsapi(req.query)
         
-        # Trigger Firecrawl Targeted Scrape
+        # Trigger Firecrawl Targeted Scrape (BACKUP)
         web_results = scrape_targeted(req.query)
         
         on_demand_items = hist_news + web_results
@@ -186,10 +202,12 @@ def query_endpoint(req: QueryRequest):
         if on_demand_items:
             saved = save_articles_batch(on_demand_items)
             print(f"💾 Persisted {saved} new on-demand items")
+    else:
+        print("✅ Sufficient live data, skipping web fallback")
 
-    # 4. Combine all contexts
-    #    Structure: [Fresh Live Stream] + [On-Demand Targeted] + [Historical DB]
-    full_context = live_snapshot + on_demand_items + db_history
+    # === STEP 5: Combine all contexts ===
+    # Priority: [Relevant Live] > [All Live] > [On-Demand] > [DB History]
+    full_context = relevant_live + live_snapshot + on_demand_items + db_history
     
     # Deduplicate by URL
     seen_urls = set()
@@ -201,8 +219,15 @@ def query_endpoint(req: QueryRequest):
             unique_context.append(item)
     
     print(f"🧠 Processing {len(unique_context)} items for AI...")
+    
+    # === STEP 6: Run RAG ===
+    result = pathway_rag_query(unique_context, req.query)
+    
+    # === STEP 7: Add fallback indicator to response ===
+    result["used_web_fallback"] = used_web_fallback
+    result["live_matches"] = len(relevant_live)
         
-    return pathway_rag_query(unique_context, req.query)
+    return result
 
 @app.get("/data")
 def get_data():

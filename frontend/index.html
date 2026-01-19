@@ -1147,7 +1147,19 @@
                         answerText = data.answer;
                     }
 
-                    document.getElementById("ai-answer-box").innerHTML = `<p style='font-size:1.1rem; line-height:1.6;'>${answerText}</p>`;
+                    // Build fallback indicator
+                    let fallbackBadge = '';
+                    if (data.used_web_fallback) {
+                        fallbackBadge = `<div style="background:#ff6b6b; color:white; padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:0.9rem;">
+                            <strong>Web Search Fallback Active</strong> — Live feed had insufficient matches (${data.live_matches || 0}). Results include web-scraped content.
+                        </div>`;
+                    } else {
+                        fallbackBadge = `<div style="background:#51cf66; color:white; padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:0.9rem;">
+                            <strong>Live Feed Results</strong> — Found ${data.live_matches || 0} relevant matches in real-time stream.
+                        </div>`;
+                    }
+
+                    document.getElementById("ai-answer-box").innerHTML = `${fallbackBadge}<p style='font-size:1.1rem; line-height:1.6;'>${answerText}</p>`;
 
                     if (sources && sources.length > 0) {
                         document.getElementById("search-results-list").innerHTML = sources.map(item => {
