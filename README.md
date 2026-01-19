@@ -26,25 +26,25 @@ The system uses a **Multithreaded Producer-Consumer Architecture** to handle hig
 ### Architecture Diagram
 ```mermaid
 graph TD
-    User[User Frontend] -->|Polls/Fetch| API[FastAPI Backend]
-    User -->|Query Shark Tank| RAG[Analysis Pipeline]
+    User["User Frontend"] -->|"Polls/Fetch"| API["FastAPI Backend"]
+    User -->|"Query Shark Tank"| RAG["Analysis Pipeline"]
 
-    subgraph "Ingestion Engine (Daemon Threads)"
-        NewsAPI[NewsAPI.org] -->|Thread 1| Buffer[Live Memory Deque]
-        GNews[GNews.io] -->|Thread 2| Buffer
-        Social["Reddit/HN"] -->|Thread 3| Buffer
-        OPML["OPML Nuclear (1800+)"] -->|Thread 4 (Global)| Buffer
+    subgraph "Ingestion Engine"
+        NewsAPI["NewsAPI.org"] -->|"Thread 1"| Buffer["Live Memory Deque"]
+        GNews["GNews.io"] -->|"Thread 2"| Buffer
+        Social["Reddit/HN"] -->|"Thread 3"| Buffer
+        OPML["OPML Nuclear 1800 Plus"] -->|"Thread 4 Global"| Buffer
     end
 
     subgraph "Control Plane"
-        User -->|Click Fetch Live| RefreshEP[/refresh_opml]
-        RefreshEP -->|Signal| OPML
-        OPML -->|Force Restart| Web[The Internet]
+        User -->|"Click Fetch Live"| RefreshEP["/refresh_opml"]
+        RefreshEP -->|"Signal"| OPML
+        OPML -->|"Force Restart"| Web["The Internet"]
     end
 
     subgraph "AI Synthesis"
-        Buffer -->|Context| LLM["Gemini / Groq"]
-        LLM -->|Summary| API
+        Buffer -->|"Context"| LLM["Gemini / Groq"]
+        LLM -->|"Summary"| API
     end
 ```
 
@@ -72,12 +72,12 @@ This subsystem ensures that the platform has access to a massive, uncensored str
 ### OPML Data Flow Diagram
 ```mermaid
 sequenceDiagram
-    participant User as Frontend (User)
-    participant API as FastAPI (/refresh_opml)
-    participant Thread as OPML Thread
-    participant Engine as OPMLIngestor
-    participant Web as The Internet (1800+ Feeds)
-    participant Store as DataStore (RAM)
+    participant User as "Frontend (User)"
+    participant API as "FastAPI (/refresh_opml)"
+    participant Thread as "OPML Thread"
+    participant Engine as "OPMLIngestor"
+    participant Web as "The Internet (1800+ Feeds)"
+    participant Store as "DataStore (RAM)"
 
     Note over Thread, Web: Default State: Background Loop
     Thread->>Engine: Loop through feeds...
@@ -85,14 +85,14 @@ sequenceDiagram
     Web-->>Engine: XML Data
     Engine->>Store: Yield New Items
 
-    User->>API: Click "Fetch Live" 🔴
+    User->>API: Click "Fetch Live"
     API->>Engine: manual_refresh() (Set Flag)
     API-->>User: 200 OK
     
     Note over Engine: Check Flag -> True!
     Engine->>Thread: BREAK Loop & RESTART
     
-    Thread->>Engine: Start Fresh Cycle ⚡
+    Thread->>Engine: Start Fresh Cycle
     Engine->>Web: Fetch Priority Feeds
     Web-->>Engine: Fresh XML
     Engine->>Store: Yield VERY FRESH Items
