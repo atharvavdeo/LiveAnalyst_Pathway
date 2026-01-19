@@ -1095,7 +1095,7 @@
                             const isSaved = isBookmarked(item.url);
                             return `
                             <div class="feed-item" style="position:relative;" onclick="window.open('${item.url}', '_blank')">
-                                <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" style="top:5px; right:5px;" onclick="event.stopPropagation(); addBookmark(JSON.parse('${JSON.stringify(item).replace(/'/g, "\\'")}'))">
+                    <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" style="top:5px; right:5px;" onclick="event.stopPropagation(); addBookmark(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item))}')))">
                                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
                                     </svg>
@@ -1193,7 +1193,7 @@
 
                         return `
                             <div class="live-news-card" style="position:relative;">
-                                <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" onclick="event.stopPropagation(); addBookmark(JSON.parse('${JSON.stringify(item).replace(/'/g, "\\'")}'))">
+                                <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" onclick="event.stopPropagation(); addBookmark(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item))}')))">
                                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
                                     </svg>
@@ -1307,7 +1307,7 @@
 
             heroContainer.innerHTML = `
                 <div class="hero-article" style="position:relative;" onclick="window.open('${heroItem.url}', '_blank')">
-                    <button class="bookmark-icon-btn ${heroIsSaved ? 'saved' : ''}" style="top:20px; right:20px; width:48px; height:48px;" onclick="event.stopPropagation(); addBookmark(JSON.parse('${JSON.stringify(heroItem).replace(/'/g, "\\'")}'))">
+                    <button class="bookmark-icon-btn ${heroIsSaved ? 'saved' : ''}" style="top:20px; right:20px; width:48px; height:48px;" onclick="event.stopPropagation(); addBookmark(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(heroItem))}')))">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
                         </svg>
@@ -1331,7 +1331,7 @@
                 const isSaved = isBookmarked(item.url);
                 return `
                 <div class="feed-item" style="position:relative;" onclick="window.open('${item.url}', '_blank')">
-                    <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" style="top:5px; right:5px;" onclick="event.stopPropagation(); addBookmark(JSON.parse('${JSON.stringify(item).replace(/'/g, "\\'")}'))">
+                    <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" style="top:5px; right:5px;" onclick="event.stopPropagation(); addBookmark(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item))}')))">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
                         </svg>
@@ -1357,7 +1357,8 @@
                 const data = await response.json();
 
                 // Combine sources for "Global Pulse"
-                const combined = [...(data.gnews || []), ...(data.hackernews || [])];
+                // Combine sources for "Global Pulse"
+                const combined = [...(data.gnews || []), ...(data.hackernews || []), ...(data.opml || [])];
                 // Shuffle or sort by date
                 combined.sort((a, b) => new Date(b.created_utc) - new Date(a.created_utc));
                 const top5 = combined.slice(0, 5);
