@@ -73,13 +73,16 @@ def run_connector(generator, source_name):
                     else:
                         data_store["stats"]["social"] += 1
                 
-                # ========== IMMEDIATE VECTOR INDEXING ==========
+                # ========== IMMEDIATE VECTOR INDEXING (NON-BLOCKING) ==========
                 # Index EACH item as it arrives for TRUE real-time RAG
-                if vs:
-                    indexed = vs.add_items([item])
-                    if indexed > 0:
-                        print(f"⚡ {source_name}: INSTANTLY indexed to vector store (Total: {vs.count()})")
-                # ================================================
+                try:
+                    if vs:
+                        indexed = vs.add_items([item])
+                        if indexed > 0:
+                            print(f"⚡ {source_name}: INSTANTLY indexed (Total: {vs.count()})")
+                except Exception as ve:
+                    pass  # Don't let vector errors block the stream
+                # ================================================================
                 
                 # Buffer for DB save (batch is OK for DB)
                 batch_buffer.append(item)
