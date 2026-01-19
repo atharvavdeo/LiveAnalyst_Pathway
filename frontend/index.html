@@ -236,6 +236,10 @@
             line-height: 1.1;
             margin-bottom: 10px;
             font-weight: 700;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .feed-info p {
@@ -334,11 +338,21 @@
             margin-top: 5px;
         }
 
+        .popular-info {
+            flex: 1;
+            min-width: 0;
+        }
+
         .popular-info h4 {
             font-family: var(--font-head);
             font-size: 1.1rem;
             line-height: 1.3;
             font-weight: 700;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 4px;
         }
 
         .popular-info span {
@@ -1322,15 +1336,18 @@
 
                 const container = document.getElementById("global-updates");
                 if (top5.length > 0) {
-                    container.innerHTML = top5.map((item, index) => `
+                    container.innerHTML = top5.map((item, index) => {
+                        const safeSource = (item.source || 'Unknown').split('_')[0].toUpperCase();
+                        const displaySource = safeSource.length > 15 ? safeSource.substring(0, 15) + '..' : safeSource;
+                        return `
                         <div class="popular-item" onclick="window.open('${item.url}', '_blank')">
                             <div class="index-circle">${index + 1}</div>
                             <div class="popular-info">
-                                <h4>${item.text}</h4>
-                                <span>${item.source.split('_')[0]}</span>
+                                <h4 title="${item.text.replace(/"/g, '&quot;')}">${item.text}</h4>
+                                <span>${displaySource}</span>
                             </div>
                         </div>
-                    `).join('');
+                    `}).join('');
                 }
             } catch (e) {
                 console.error("Polling error", e);
