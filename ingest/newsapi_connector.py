@@ -110,8 +110,9 @@ def fetch_category_newsapi(category: str) -> list:
         params["category"] = "general"
         
     elif cat_lower == "politics":
-        params["category"] = "general"
-        params["q"] = "politics" # Keyword filter
+        # Use Everything endpoint for politics (top-headlines is too restrictive)
+        print("🏛️ Fetching POLITICS stream via Everything endpoint...")
+        return search_newsapi("politics OR government OR election OR congress OR parliament")
         
     elif cat_lower == "environment" or cat_lower == "planet":
         params["category"] = "science"
