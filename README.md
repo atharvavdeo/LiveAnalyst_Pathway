@@ -4,7 +4,7 @@
 
 ## System Architecture
 
-The system is architected around the **Pathway Data Stream**, a high-throughput ingestion layer that enables the system to process live information with sub-second latency while maintaining deep historical context.
+The system is architected around the **[Pathway](https://github.com/pathwaycom/pathway) Live Data Framework**, a Python ETL framework for stream processing powered by a high-performance Rust engine. Pathway enables the system to process live information with sub-second latency while maintaining deep historical context through incremental computation.
 
 ### Architecture Diagram
 ```mermaid
@@ -12,10 +12,10 @@ graph TD
     User[User Frontend] -->|Polls| API[FastAPI Backend]
     User -->|Query| RAG[RAG Pipeline]
 
-    subgraph "Pathway Data Stream (Ingestion)"
-        NewsAPI[NewsAPI.org] -->|Live Stream| Buffer[In-Memory Deque]
-        GNews[GNews.io] -->|Live Stream| Buffer
-        Social["HackerNews/Reddit"] -->|Live Stream| Buffer
+    subgraph "Pathway Connectors (pw.io.python)"
+        NewsAPI[NewsAPI.org] -->|ConnectorSubject| Buffer[In-Memory Deque]
+        GNews[GNews.io] -->|ConnectorSubject| Buffer
+        Social["HackerNews/Reddit"] -->|ConnectorSubject| Buffer
         Firecrawl["Firecrawl (Web)"] -->|On-Demand| VectorStore
     end
 
@@ -31,14 +31,14 @@ graph TD
     end
 ```
 
-### 1. Pathway Data Stream (Ingestion Layer)
-The Pathway Data Stream acts as the central nervous system for data, managing parallel ingestion pipelines from diverse high-velocity sources:
+### 1. Pathway Connector Layer (Ingestion)
+Each data source is implemented as a **Pathway Connector** (`pw.io.python.ConnectorSubject`), enabling true stream processing with Pathway's differential dataflow engine:
 - **NewsAPI Streams**: Captures global breaking news and specific topic streams (e.g., "Fun/Viral" stream) in real-time.
 - **GNews Historical Bridge**: Provides on-demand access to a 3-year archive for deep context on geopolitical and economic queries.
 - **Social Firehose**: Ingests rapid-fire sentiment data from Reddit and HackerNews.
 - **Firecrawl Targeted Scraper**: Executes precision deep-web scraping for specific URLs or semantic targets.
 
-All incoming data is normalized instantaneously into a unified schema within the Pathway Data Stream before being routed to the storage layer.
+All incoming data is normalized into a unified Pathway schema before being routed to the storage layer. Pathway's Rust engine handles the parallelism, freeing us from Python's GIL limitations.
 
 ### 2. Hybrid Data Storage
 The architecture utilizes a tiered storage strategy to optimize for both freshness and persistence:
