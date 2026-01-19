@@ -954,6 +954,7 @@
     </div>
 
     <script>
+        const API_BASE = "http://localhost:8000";
         let currentCategory = "Technology";
 
         // --- BOOKMARK SYSTEM ---
@@ -1068,7 +1069,7 @@
                 document.getElementById("search-results-list").innerHTML = "";
 
                 try {
-                    const response = await fetch('/query', {
+                    const response = await fetch(API_BASE + '/query', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ query: query })
@@ -1158,7 +1159,7 @@
             const statusText = document.getElementById("pipeline-status-text");
 
             try {
-                const response = await fetch('/data');
+                const response = await fetch(API_BASE + '/data');
                 const data = await response.json();
 
                 // Combine all sources and get 5 most recent
@@ -1223,7 +1224,7 @@
         async function loadFunStream() {
             const container = document.getElementById("fun-feed");
             try {
-                const response = await fetch('/fetch_news', {
+                const response = await fetch(API_BASE + '/fetch_news', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ category: 'fun' })
@@ -1273,7 +1274,7 @@
 
             // B. Fetch Fresh from Backend
             try {
-                const response = await fetch('/fetch_news', {
+                const response = await fetch(API_BASE + '/fetch_news', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ category: category.toLowerCase() })
@@ -1352,7 +1353,7 @@
 
         async function fetchWorldUpdates() {
             try {
-                const response = await fetch('/data');
+                const response = await fetch(API_BASE + '/data');
                 const data = await response.json();
 
                 // Combine sources for "Global Pulse"

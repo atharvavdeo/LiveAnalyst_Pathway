@@ -1,0 +1,21 @@
+::1 - - [19/Jan/2026 21:39:39] "GET / HTTP/1.1" 200 -
+::1 - - [19/Jan/2026 21:39:40] code 404, message File not found
+::1 - - [19/Jan/2026 21:39:40] "GET /favicon.ico HTTP/1.1" 404 -
+::1 - - [19/Jan/2026 21:40:02] code 501, message Unsupported method ('POST')
+::1 - - [19/Jan/2026 21:40:02] "POST /fetch_news HTTP/1.1" 501 -
+::1 - - [19/Jan/2026 21:40:02] code 404, message File not found
+::1 - - [19/Jan/2026 21:40:02] "GET /data HTTP/1.1" 404 -
+::1 - - [19/Jan/2026 21:40:02] code 404, message File not found
+::1 - - [19/Jan/2026 21:40:02] "GET /data HTTP/1.1" 404 -
+::1 - - [19/Jan/2026 21:40:05] code 501, message Unsupported method ('POST')
+::1 - - [19/Jan/2026 21:40:05] "POST /fetch_news HTTP/1.1" 501 -
+::1 - - [19/Jan/2026 21:40:12] code 404, message File not found
+::1 - - [19/Jan/2026 21:40:12] "GET /data HTTP/1.1" 404 -
+::1 - - [19/Jan/2026 21:40:22] code 404, message File not found
+::1 - - [19/Jan/2026 21:40:22] "GET /data HTTP/1.1" 404 -
+::1 - - [19/Jan/2026 21:40:32] code 404, message File not found
+::1 - - [19/Jan/2026 21:40:32] "GET /data HTTP/1.1" 404 -
+::1 - - [19/Jan/2026 21:40:42] code 404, message File not found
+::1 - - [19/Jan/2026 21:40:42] "GET /data HTTP/1.1" 404 -
+::1 - - [19/Jan/2026 21:40:52] code 404, message File not found
+::1 - - [19/Jan/2026 21:40:52] "GET /data HTTP/1.1" 404 -
