@@ -135,3 +135,25 @@ INFO:     127.0.0.1:60145 - "GET /data HTTP/1.1" 200 OK
 ✅ Found 20 articles for category 'business'.
 💾 Persisted 0 items from category 'business'
 INFO:     127.0.0.1:60144 - "POST /fetch_news HTTP/1.1" 200 OK
+📰 OPML: Yielded 120 items so far...
+INFO:     127.0.0.1:60199 - "GET /data HTTP/1.1" 200 OK
+📥 Fetching news for category: business
+📰 NewsAPI Fetch: 'business'
+INFO:     127.0.0.1:60201 - "GET /data HTTP/1.1" 200 OK
+✅ Found 20 articles for category 'business'.
+💾 Persisted 0 items from category 'business'
+INFO:     127.0.0.1:60200 - "POST /fetch_news HTTP/1.1" 200 OK
+✅ HackerNews: Fetched 20 stories
+📰 OPML: Yielded 130 items so far...
+📥 Fetching news for category: business
+📰 NewsAPI Fetch: 'business'
+INFO:     127.0.0.1:60240 - "GET /data HTTP/1.1" 200 OK
+✅ Found 20 articles for category 'business'.
+💾 Persisted 0 items from category 'business'
+INFO:     127.0.0.1:60239 - "POST /fetch_news HTTP/1.1" 200 OK
+🔄 API: Manual OPML Refresh Requested
+⚡ OPML: Manual refresh triggered!
+INFO:     127.0.0.1:60240 - "POST /refresh_opml HTTP/1.1" 200 OK
+⚡ OPML: Restarting feed cycle immediately...
+✅ OPML: Completed cycle, yielded 134 new items. Sleeping 10s...
+INFO:     127.0.0.1:60240 - "GET /data HTTP/1.1" 200 OK

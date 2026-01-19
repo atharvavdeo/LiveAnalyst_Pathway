@@ -9,13 +9,13 @@
 
 ## 🚀 Key Features
 
-*   **☢️ "Nuclear Option" Ingestion**: Simultaneously streams data from **1800+ Global RSS feeds** (OPML) alongside premium APIs. [See Architecture](OPML_ARCHITECTURE.md).
+*   **☢️ "Nuclear Option" Ingestion**: Simultaneously streams data from **1800+ Global RSS feeds** (OPML) alongside premium APIs.
 *   **🔴 Real-Time "Fetch Live"**: Front-end button triggers an immediate, interrupt-driven refresh of the backend engine, ensuring sub-second data freshness.
 *   **🧠 Hybrid RAG Pipeline**:
     *   **Retrieval**: Combines live memory buffers (Hot) with historical SQLite storage (Cold).
     *   **Generation**: Uses **Gemini 1.5 Flash** with automatic failover to **Groq (Llama 3)** for resilience.
 *   **🛡️ Intelligent Deduplication**: Filter logic removes duplicate stories across different sources to keep the feed clean.
-*   **🏷️ Topic isolation**: Strict category filtering allows users to isolate "Business", "Tech", or "Science" streams without noise.
+*   **🏷️ Topic isolation**: Strict category filtering allows users to isolate streams without noise.
 
 ---
 
@@ -27,7 +27,7 @@ The system uses a **Multithreaded Producer-Consumer Architecture** to handle hig
 ```mermaid
 graph TD
     User[User Frontend] -->|Polls/Fetch| API[FastAPI Backend]
-    User -->|Query "Shark Tank"| RAG[Analysis Pipeline]
+    User -->|Query Shark Tank| RAG[Analysis Pipeline]
 
     subgraph "Ingestion Engine (Daemon Threads)"
         NewsAPI[NewsAPI.org] -->|Thread 1| Buffer[Live Memory Deque]
@@ -37,25 +37,74 @@ graph TD
     end
 
     subgraph "Control Plane"
-        User -->|Click 'Fetch Live'| RefreshEP[/refresh_opml]
+        User -->|Click Fetch Live| RefreshEP[/refresh_opml]
         RefreshEP -->|Signal| OPML
         OPML -->|Force Restart| Web[The Internet]
     end
 
     subgraph "AI Synthesis"
         Buffer -->|Context| LLM["Gemini / Groq"]
-        LLM -->|Summary & Finds| API
+        LLM -->|Summary| API
     end
 ```
 
 ### 1. Ingestion Layer
 Instead of relying on heavy external frameworks, we implemented a custom **Python Threading** engine. Each connector (News, Social, OPML) runs in its own daemon thread, fetching data and pushing it to a thread-safe `deque`.
-*   **OPML Engine**: See [OPML_ARCHITECTURE.md](OPML_ARCHITECTURE.md) for details on the "Nuclear" mass-ingestion system.
 
 ### 2. RAG & AI Layer
 *   **Model A (Primary)**: Gemini 1.5 Flash (Google) - Fast, large context.
 *   **Model B (Fallback)**: Groq (Llama 3.3 70B) - Ultra-low latency inference.
-*   **Vector Search**: (Currently disabled to prevent threading deadlocks, relying on Keyword + Time-Decay Re-ranking).
+
+---
+
+## ☢️ OPML "Nuclear Option" Architecture
+
+This subsystem ensures that the platform has access to a massive, uncensored stream of global information by processing **1800+ global RSS feeds** in real-time.
+
+### Core Components
+1.  **`OPMLIngestor` Class (`ingest/opml_loader.py`)**:
+    *   **Role**: The engine core. Downloads OPML lists from GitHub, manages feed URLs.
+    *   **Real-Time Trigger**: Listens for a `force_restart` flag to break loops and fetch fresh data instantly.
+
+2.  **Global Thread Manager (`app_pathway.py`)**:
+    *   **Role**: Instantiates a **Global Instance** of `OPMLIngestor` at startup to maintain state.
+
+### OPML Data Flow Diagram
+```mermaid
+sequenceDiagram
+    participant User as Frontend (User)
+    participant API as FastAPI (/refresh_opml)
+    participant Thread as OPML Thread
+    participant Engine as OPMLIngestor
+    participant Web as The Internet (1800+ Feeds)
+    participant Store as DataStore (RAM)
+
+    Note over Thread, Web: Default State: Background Loop
+    Thread->>Engine: Loop through feeds...
+    Engine->>Web: Fetch RSS
+    Web-->>Engine: XML Data
+    Engine->>Store: Yield New Items
+
+    User->>API: Click "Fetch Live" 🔴
+    API->>Engine: manual_refresh() (Set Flag)
+    API-->>User: 200 OK
+    
+    Note over Engine: Check Flag -> True!
+    Engine->>Thread: BREAK Loop & RESTART
+    
+    Thread->>Engine: Start Fresh Cycle ⚡
+    Engine->>Web: Fetch Priority Feeds
+    Web-->>Engine: Fresh XML
+    Engine->>Store: Yield VERY FRESH Items
+    
+    User->>Store: Fetch /data (after delay)
+    Store-->>User: Return Top 10 Live Items
+```
+
+### Key Technical Decisions
+*   **Generator-Based Ingestion**: The `run()` method yields items one by one.
+*   **Deduplication**: Maintains a `seen_entries` set to prevent duplicates.
+*   **Shuffle Logic**: Feeds are shuffled on every cycle to ensure variety.
 
 ---
 
@@ -76,20 +125,17 @@ pip install -r requirements.txt
 # Starts FastAPI server on port 8000
 python3 app_pathway.py
 ```
-*   **Note**: The server logs will show "🚀 OPML: Starting to parse..." indicating the engine is warming up.
 
 ### 3. Access the Frontend
-Open `frontend/index.html` in your browser, or visit:
-`http://localhost:8000/app`
+Open `frontend/index.html` in your browser, or visit: `http://localhost:8000/app`
 
 ### 4. How to Use
-1.  **View Feed**: The main page shows a "Verge-style" Bento grid of top news.
-2.  **Filter Topics**: Click "Business", "Tech", etc. in the startup modal or header.
+1.  **View Feed**: The main page shows a "Verge-style" Bento grid.
+2.  **Filter Topics**: Click "Business", "Tech", etc.
 3.  **🔴 Fetch Live**: Click the pink button in the header.
-    *   *Action*: This forces the backend to DROP the current OPML cycle and restart scanning 1800+ feeds immediately.
-    *   *Result*: A modal appears with the absolute latest 10 items from around the world.
+    *   *Action*: Forces backend restart of OPML scanning.
+    *   *Result*: Modal with latest 10 items.
 4.  **Ask AI**: Use the search bar (e.g., "Shark Tank").
-    *   *Result*: The system aggregates relevant live items and generates a briefing.
 
 ---
 
@@ -100,9 +146,8 @@ Open `frontend/index.html` in your browser, or visit:
 *   `pipeline/`: RAG logic and LLM integration (`gemini_rag.py`).
 *   `frontend/`: Static HTML/JS UI (`index.html`).
 *   `data/`: SQLite database and local caches.
-*   `OPML_ARCHITECTURE.md`: Detailed docs for the ingestion engine.
 
 ---
 
 ## 📜 License
-MIT License. Built for the Pathway Datathon (and beyond).
+MIT License.
