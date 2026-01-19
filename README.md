@@ -103,6 +103,27 @@ Access the application at `http://localhost:8000/`.
 
 ---
 
+## Real-Time Streaming Functionality
+
+The application achieves "real-time" responsiveness through a **multi-threaded ingestion engine** and **smart client-side polling**. It does not rely on complex WebSocket infrastructure, making it robust and easy to deploy.
+
+### 1. Multi-threaded Ingestion Engine
+The backend (`app_pathway.py`) spawns separate daemon threads for each data source upon startup:
+-   **NewsAPI & GNews**: Polls for global headlines at optimized intervals (15-30 mins) to respect API rate limits.
+-   **Social & Firecrawl**: Runs continuous loops to fetch the latest discussions from Reddit and HackerNews.
+-   **Thread Safety**: All threads push data into a shared, thread-safe `deque` (Double Ended Queue) protected by a global lock (`data_lock`), ensuring the main application always has instant O(1) access to the latest ~200 items in memory.
+
+### 2. Live Data Flow via Polling
+-   **"Global Pulse" (Sidebar)**: The frontend acts as an active poller, hitting the `/data` endpoint every 60 seconds to refresh the "Most Popular" and global feed sections without page reloads.
+-   **On-Demand Categories**: When a user switches topics (e.g., to "Technology"), the app triggers a specific `/fetch_news` call. These results are immediately cached in the browser's `localStorage`, providing an "instant" feel for subsequent visits to the same category.
+
+### 3. Hybrid Persistence Strategy
+To balance speed and history:
+-   **Hot Storage (RAM)**: The "Live Stream" buffer holds fresh data in memory for immediate RAG context.
+-   **Cold Storage (SQLite)**: A background process flushes the buffer to a disk-based SQLite database every 30 seconds, preserving data for long-term historical analysis and trend searching.
+
+---
+
 ## Tech Stack
 - **Backend Frameowrk**: FastAPI
 - **Language**: Python 3.11
