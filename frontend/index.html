@@ -1221,7 +1221,7 @@
             setTimeout(loadFunStream, 3000);
 
             // Auto-refresh main feed every 30s to pull in new live data
-            setInterval(() => loadCategoryData(currentCategory), 30000);
+            setInterval(() => loadCategoryData(currentCategory), 20000); // 20 sec poll for live OPML updates
         }
 
         async function loadFunStream() {
