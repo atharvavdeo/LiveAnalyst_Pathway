@@ -4,17 +4,33 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-green)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)](https://fastapi.tiangolo.com)
 [![Groq](https://img.shields.io/badge/AI-Groq%20Llama%203-orange)](https://groq.com)
-[![Gemini](https://img.shields.io/badge/AI-Gemini%201.5-blue)](https://deepmind.google/technologies/gemini/)
+[![Gemini](https://img.shields.io/badge/AI-Gemini%203.0-blue)](https://deepmind.google/technologies/gemini/)
 
-**Live Social Analyst** is a real-time intelligence engine built on the **Pathway Live Data Framework**. It aggregates, deduplicates, and analyzes global information streams instantly using Pathway's reactive data processing capabilities. It combines a massive ingestion network with a Hybrid RAG (Retrieval-Augmented Generation) pipeline to answer complex queries with verifiable sources.
+**Live Social Analyst** is a high-performance, real-time intelligence engine built on the **Pathway Live Data Framework**.
 
-## Pathway ETL Architecture
+## Pathway Live Data Framework
 
-The core of the application is a **Pathway ETL Pipeline** that unifies diverse data streams into a single reliable source of truth. Unlike traditional batch processing, Pathway enables:
+Pathway is a Python ETL framework for stream processing, real-time analytics, LLM pipelines, and RAG.
 
-*   **Unified Streaming**: All data sources (NewsAPI, GNews, Reddit, OPML) are treated as continuous streams.
-*   **Real-Time Reactivity**: The system updates its state immediately upon receiving new data points.
-*   **In-Memory Processing**: Leveraging Pathway's high-performance engine for sub-second latency.
+Pathway comes with an easy-to-use Python API, allowing you to seamlessly integrate your favorite Python ML libraries. Pathway code is versatile and robust: you can use it in both development and production environments, handling both batch and streaming data effectively. The same code can be used for local development, CI/CD tests, running batch jobs, handling stream replays, and processing data streams.
+
+Pathway is powered by a scalable Rust engine based on Differential Dataflow and performs incremental computation. Your Pathway code, despite being written in Python, is run by the Rust engine, enabling multithreading, multiprocessing, and distributed computations. All the pipeline is kept in memory and can be easily deployed with Docker and Kubernetes.
+
+## Key Features
+
+*   **Pathway-Powered Connectors**: Seamless integration of multiple data sources into a unified ETL pipeline.
+*   **High-Throughput Ingestion**: Simultaneously streams data from **1800+ Global RSS feeds** (OPML) alongside premium APIs.
+*   **Real-Time Fetch**: Front-end trigger for immediate, interrupt-driven refresh of the ingestion engine, ensuring sub-second data freshness.
+*   **Hybrid RAG Pipeline**:
+    *   **Retrieval**: Combines live memory buffers with historical SQLite storage.
+    *   **Generation**: Uses **Gemini 3.0 Flash** with automatic failover to **Groq**.
+*   **Intelligent Deduplication**: Deduplication logic to remove duplicate stories across different sources.
+
+## Pathway Features in this App
+*   **Stateless and stateful transformations**: Pathway supports stateful transformations such as joins, windowing, and sorting.
+*   **Consistency**: Pathway handles the time for you, making sure all your computations are consistent. In particular, Pathway manages late and out-of-order points.
+*   **Scalable Rust engine**: With Pathway Rust engine, you are free from the usual limits imposed by Python.
+
 
 ### Architecture Diagram
 ```mermaid
