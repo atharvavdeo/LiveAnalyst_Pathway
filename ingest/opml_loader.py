@@ -114,6 +114,17 @@ class OPMLIngestor:
                             if items_yielded % 10 == 0:
                                 print(f"📰 OPML: Yielded {items_yielded} items so far...")
                             
+                            # Get ACTUAL publication date from RSS, not ingestion time
+                            pub_date = None
+                            if hasattr(entry, 'published_parsed') and entry.published_parsed:
+                                pub_date = time.strftime('%Y-%m-%dT%H:%M:%SZ', entry.published_parsed)
+                            elif hasattr(entry, 'published') and entry.published:
+                                pub_date = entry.published
+                            elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
+                                pub_date = time.strftime('%Y-%m-%dT%H:%M:%SZ', entry.updated_parsed)
+                            else:
+                                pub_date = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                            
                             # Yield normalized schema for Pathway
                             yield {
                                 "text": f"{entry.get('title', 'Untitled')} - {entry.get('summary', '')[:300]}",
@@ -121,7 +132,7 @@ class OPMLIngestor:
                                 "category": category,
                                 "url": entry.link,
                                 "reliability": "High",  # RSS is generally reliable
-                                "created_utc": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                                "created_utc": pub_date,
                                 "feed_title": feed.feed.get('title', 'Unknown')
                             }
                 except Exception as e:
