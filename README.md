@@ -19,38 +19,32 @@ The core of the application is a **Pathway ETL Pipeline** that unifies diverse d
 ### Architecture Diagram
 ```mermaid
 graph LR
-    %% Node Styles
-    classDef source fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    classDef buffer fill:#fff3e0,stroke:#ff6f00,stroke-width:2px,stroke-dasharray: 5 5;
-    classDef ai fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    classDef app fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
-
-    User([User Frontend]):::app
-    API[FastAPI Backend]:::app
+    User[User Frontend]
+    API[FastAPI Backend]
 
     subgraph Inputs ["Data Ingestion Streams"]
         direction TB
-        News[NewsAPI]:::source
-        GNews[GNews]:::source
-        Social[Reddit/HN]:::source
-        OPML[OPML 1800+]:::source
+        News[NewsAPI]
+        GNews[GNews]
+        Social[Reddit/HN]
+        OPML[OPML 1800+]
     end
 
     subgraph Core ["Pathway ETL Engine"]
-        Buffer[(Live Stream Buffer)]:::buffer
+        Buffer[(Live Stream Buffer)]
     end
 
     subgraph Brain ["AI & Analysis"]
         direction TB
-        RAG[RAG Pipeline]:::ai
-        LLM[Gemini / Groq]:::ai
+        RAG[RAG Pipeline]
+        LLM[Gemini / Groq]
     end
 
     %% Data Flow
     News & GNews & Social & OPML --> Buffer
     Buffer --> RAG
 
-    %% app Flow
+    %% App Flow
     User -->|Query| RAG
     RAG -->|Context| LLM
     LLM -->|Summary| API
