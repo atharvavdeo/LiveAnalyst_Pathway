@@ -1215,7 +1215,7 @@
 
             // Start polling for side column
             fetchWorldUpdates();
-            setInterval(fetchWorldUpdates, 60000); // 1 min poll
+            setInterval(fetchWorldUpdates, 20000); // 20 sec poll for live Global Pulse
 
             // Load Fun Stream after 3000ms
             setTimeout(loadFunStream, 3000);
@@ -1467,12 +1467,21 @@
                 const response = await fetch(API_BASE + '/data');
                 const data = await response.json();
 
-                // Combine sources for "Global Pulse"
-                // Combine sources for "Global Pulse"
-                const combined = [...(data.gnews || []), ...(data.hackernews || []), ...(data.opml || [])];
-                // Shuffle or sort by date
-                combined.sort((a, b) => new Date(b.created_utc) - new Date(a.created_utc));
-                const top5 = combined.slice(0, 5);
+                // Combine sources for "Global Pulse" - OPML FIRST (freshest)
+                const allPulse = [...(data.opml || []), ...(data.gnews || []), ...(data.hackernews || [])];
+
+                // Freshness filter: only items < 3 hours old
+                const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+                const now = Date.now();
+                const freshPulse = allPulse.filter(item => {
+                    if (!item.created_utc) return true;
+                    const itemTime = new Date(item.created_utc).getTime();
+                    return (now - itemTime) < THREE_HOURS_MS;
+                });
+
+                // Sort by date (newest first)
+                freshPulse.sort((a, b) => new Date(b.created_utc) - new Date(a.created_utc));
+                const top5 = freshPulse.slice(0, 5);
 
                 const container = document.getElementById("global-updates");
                 if (top5.length > 0) {
@@ -1589,6 +1598,10 @@
                     </div>
                     `;
                 }).join('');
+
+                // REFRESH Global Pulse and Main Feed after live fetch
+                fetchWorldUpdates();
+                loadCategoryData(currentCategory);
 
             } catch (e) {
                 list.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error connecting to backend: ${e.message}</p>`;
