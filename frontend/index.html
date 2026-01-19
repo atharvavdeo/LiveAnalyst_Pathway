@@ -595,6 +595,229 @@
         .live-news-card .time-ago {
             color: rgba(255, 255, 255, 0.5);
         }
+
+        /* --- BOOKMARK FEATURE --- */
+        .bookmark-fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 0, 85, 0.4);
+            z-index: 1000;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .bookmark-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(255, 0, 85, 0.6);
+        }
+
+        .bookmark-fab svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+        }
+
+        .bookmark-fab .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #000;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-family: var(--font-body);
+        }
+
+        .bookmark-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bookmark-panel.open {
+            right: 0;
+        }
+
+        .bookmark-panel-header {
+            padding: 20px;
+            background: var(--text-main);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bookmark-panel-header h3 {
+            font-family: var(--font-head);
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bookmark-panel-header h3 svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .bookmark-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .bookmark-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .bookmark-card {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .bookmark-card:hover {
+            border-color: var(--accent-solid);
+            transform: translateX(-5px);
+        }
+
+        .bookmark-card h4 {
+            font-family: var(--font-head);
+            font-size: 1rem;
+            margin-bottom: 8px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .bookmark-card .bookmark-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .bookmark-card .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-solid);
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .bookmark-card:hover .remove-btn {
+            opacity: 1;
+        }
+
+        .bookmark-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .bookmark-empty svg {
+            width: 60px;
+            height: 60px;
+            fill: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .bookmark-empty p {
+            font-size: 0.9rem;
+        }
+
+        /* Bookmark icon on news cards */
+        .bookmark-icon-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 5;
+        }
+
+        .bookmark-icon-btn:hover {
+            background: var(--accent-solid);
+        }
+
+        .bookmark-icon-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: white;
+        }
+
+        .bookmark-icon-btn.saved svg {
+            fill: #FFD700;
+        }
+
+        .bookmark-panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .bookmark-panel-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 
@@ -703,8 +926,131 @@
         </div>
     </div>
 
+    <!-- BOOKMARK FLOATING BUTTON -->
+    <div class="bookmark-fab" onclick="toggleBookmarkPanel()">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+        </svg>
+        <span class="badge" id="bookmark-count">0</span>
+    </div>
+
+    <!-- BOOKMARK PANEL OVERLAY -->
+    <div class="bookmark-panel-overlay" id="bookmark-overlay" onclick="toggleBookmarkPanel()"></div>
+
+    <!-- BOOKMARK SLIDE-OUT PANEL -->
+    <div class="bookmark-panel" id="bookmark-panel">
+        <div class="bookmark-panel-header">
+            <h3>
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                </svg>
+                Saved Articles
+            </h3>
+            <button class="bookmark-close" onclick="toggleBookmarkPanel()">&times;</button>
+        </div>
+        <div class="bookmark-panel-content" id="bookmark-list">
+            <!-- JS populates bookmarks here -->
+        </div>
+    </div>
+
     <script>
         let currentCategory = "Technology";
+
+        // --- BOOKMARK SYSTEM ---
+        const BOOKMARK_KEY = 'lsa_bookmarks';
+
+        function getBookmarks() {
+            try {
+                return JSON.parse(localStorage.getItem(BOOKMARK_KEY)) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveBookmarks(bookmarks) {
+            localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));
+            updateBookmarkCount();
+            renderBookmarkPanel();
+        }
+
+        function addBookmark(item) {
+            const bookmarks = getBookmarks();
+            // Check if already bookmarked
+            if (!bookmarks.find(b => b.url === item.url)) {
+                bookmarks.unshift({
+                    ...item,
+                    savedAt: new Date().toISOString()
+                });
+                saveBookmarks(bookmarks);
+                showToast('Article saved!');
+            }
+        }
+
+        function removeBookmark(url) {
+            const bookmarks = getBookmarks().filter(b => b.url !== url);
+            saveBookmarks(bookmarks);
+            showToast('Article removed');
+        }
+
+        function isBookmarked(url) {
+            return getBookmarks().some(b => b.url === url);
+        }
+
+        function updateBookmarkCount() {
+            const count = getBookmarks().length;
+            document.getElementById('bookmark-count').textContent = count;
+            document.getElementById('bookmark-count').style.display = count > 0 ? 'block' : 'none';
+        }
+
+        function toggleBookmarkPanel() {
+            const panel = document.getElementById('bookmark-panel');
+            const overlay = document.getElementById('bookmark-overlay');
+            panel.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        function renderBookmarkPanel() {
+            const container = document.getElementById('bookmark-list');
+            const bookmarks = getBookmarks();
+
+            if (bookmarks.length === 0) {
+                container.innerHTML = `
+                    <div class="bookmark-empty">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                        </svg>
+                        <p>No saved articles yet.<br>Click the bookmark icon on any news item to save it.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = bookmarks.map(item => `
+                <div class="bookmark-card" onclick="window.open('${item.url}', '_blank')">
+                    <button class="remove-btn" onclick="event.stopPropagation(); removeBookmark('${item.url}')">&times;</button>
+                    <h4>${item.text || 'Saved Article'}</h4>
+                    <div class="bookmark-meta">
+                        <span>${(item.source || 'Unknown').toUpperCase()}</span>
+                        <span>${calculateTimeAgo(item.savedAt)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showToast(message) {
+            // Simple toast notification
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:100px;right:30px;background:#000;color:#fff;padding:12px 20px;border-radius:8px;font-size:0.9rem;z-index:2000;animation:fadeIn 0.3s;';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        // Initialize bookmarks on load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateBookmarkCount();
+            renderBookmarkPanel();
+        });
 
         // --- SEARCH LOGIC ---
         async function handleSearch(e) {
@@ -830,19 +1176,28 @@
                 if (top5.length > 0) {
                     statusText.textContent = `LIVE • ${data.stats?.news || 0} news | ${data.stats?.social || 0} social | ${data.stats?.opml || 0} RSS`;
 
-                    container.innerHTML = top5.map(item => {
+                    container.innerHTML = top5.map((item, idx) => {
                         const img = item.image_url || `https://picsum.photos/seed/${Math.random()}/400/200`;
                         const source = (item.source || 'Unknown').split('_')[0].toUpperCase();
                         const timeAgo = calculateTimeAgo(item.created_utc);
+                        const itemJson = JSON.stringify(item).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        const isSaved = isBookmarked(item.url);
 
                         return `
-                            <div class="live-news-card" onclick="window.open('${item.url}', '_blank')">
-                                <img src="${img}" alt="News" onerror="this.src='https://via.placeholder.com/400x200?text=Live+Stream'">
-                                <div class="card-content">
-                                    <h4>${item.text || 'Breaking News'}</h4>
-                                    <div class="card-meta">
-                                        <span class="source-badge">${source}</span>
-                                        <span class="time-ago">${timeAgo}</span>
+                            <div class="live-news-card" style="position:relative;">
+                                <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" onclick="event.stopPropagation(); addBookmark(JSON.parse('${JSON.stringify(item).replace(/'/g, "\\'")}'))">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                                    </svg>
+                                </button>
+                                <div onclick="window.open('${item.url}', '_blank')" style="cursor:pointer;">
+                                    <img src="${img}" alt="News" onerror="this.src='https://via.placeholder.com/400x200?text=Live+Stream'">
+                                    <div class="card-content">
+                                        <h4>${item.text || 'Breaking News'}</h4>
+                                        <div class="card-meta">
+                                            <span class="source-badge">${source}</span>
+                                            <span class="time-ago">${timeAgo}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
