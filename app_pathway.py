@@ -51,7 +51,12 @@ data_lock = threading.Lock()
 def run_connector(generator, source_name):
     print(f"📡 Starting stream: {source_name}")
     batch_buffer = []
+    vector_buffer = []  # Buffer for vector indexing
     last_save = time.time()
+    
+    # Import vector store for real-time indexing
+    from pipeline.vector_store import get_vector_store
+    vs = get_vector_store()
         
     try:
         for item in generator:
@@ -71,13 +76,22 @@ def run_connector(generator, source_name):
                 
                 # Buffer for DB save
                 batch_buffer.append(item)
+                vector_buffer.append(item)
                 
                 # Save every 10 items or 30 seconds
                 if len(batch_buffer) >= 10 or (time.time() - last_save > 30):
                     count = save_articles_batch(batch_buffer)
                     if count > 0:
                         print(f"💾 {source_name}: Saved {count} items to DB")
+                    
+                    # INDEX TO VECTOR STORE (ChromaDB)
+                    if vs and vector_buffer:
+                        indexed = vs.add_items(vector_buffer)
+                        if indexed > 0:
+                            print(f"🧠 {source_name}: Indexed {indexed} items to vector store")
+                    
                     batch_buffer = []
+                    vector_buffer = []
                     last_save = time.time()
                     
     except Exception as e:
