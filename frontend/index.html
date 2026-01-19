@@ -1295,16 +1295,27 @@
                 ];
 
                 const relevantLive = liveStreams.filter(item => {
-                    // Filter strictly by category
+                    // ALWAYS include OPML items - they are curated RSS feeds
+                    if (item.source === 'opml') return true;
+
+                    // Include HN for technology
                     if (item.source === 'hackernews' && category.toLowerCase() === 'technology') return true;
 
-                    if (!item.category) return false;
+                    // Category-based matching for other sources
+                    if (item.category) {
+                        const itemCat = item.category.toLowerCase();
+                        const targetCat = category.toLowerCase();
+                        if (itemCat.includes(targetCat) || targetCat.includes(itemCat)) return true;
+                    }
 
-                    const itemCat = item.category.toLowerCase();
-                    const targetCat = category.toLowerCase();
+                    // Keyword matching in text for relevance
+                    if (item.text) {
+                        const text = item.text.toLowerCase();
+                        const targetCat = category.toLowerCase();
+                        if (text.includes(targetCat)) return true;
+                    }
 
-                    // Match if category overlaps
-                    return itemCat.includes(targetCat) || targetCat.includes(itemCat);
+                    return false;
                 });
 
                 combinedItems = [...combinedItems, ...relevantLive];
