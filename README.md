@@ -103,24 +103,48 @@ Access the application at `http://localhost:8000/`.
 
 ---
 
-## Real-Time Streaming Functionality
+## Real-Time Streaming Functionality (Powered by Pathway)
 
-The application achieves "real-time" responsiveness through a **multi-threaded ingestion engine** and **smart client-side polling**. It does not rely on complex WebSocket infrastructure, making it robust and easy to deploy.
+This application is built on top of the **[Pathway](https://github.com/pathwaycom/pathway) Live Data Framework**, a Python ETL framework for stream processing, real-time analytics, and RAG pipelines. Pathway's Rust-powered engine provides the high-performance backbone for our data ingestion.
 
-### 1. Multi-threaded Ingestion Engine
-The backend (`app_pathway.py`) spawns separate daemon threads for each data source upon startup:
--   **NewsAPI & GNews**: Polls for global headlines at optimized intervals (15-30 mins) to respect API rate limits.
--   **Social & Firecrawl**: Runs continuous loops to fetch the latest discussions from Reddit and HackerNews.
--   **Thread Safety**: All threads push data into a shared, thread-safe `deque` (Double Ended Queue) protected by a global lock (`data_lock`), ensuring the main application always has instant O(1) access to the latest ~200 items in memory.
+### 1. Pathway `ConnectorSubject` Architecture
+Each data source is implemented as a **Pathway Connector** by extending `pw.io.python.ConnectorSubject`. This allows us to define data streams as Python generators that Pathway's engine consumes:
 
-### 2. Live Data Flow via Polling
--   **"Global Pulse" (Sidebar)**: The frontend acts as an active poller, hitting the `/data` endpoint every 60 seconds to refresh the "Most Popular" and global feed sections without page reloads.
--   **On-Demand Categories**: When a user switches topics (e.g., to "Technology"), the app triggers a specific `/fetch_news` call. These results are immediately cached in the browser's `localStorage`, providing an "instant" feel for subsequent visits to the same category.
+```python
+# Example from ingest/newsapi_connector.py
+import pathway as pw
 
-### 3. Hybrid Persistence Strategy
-To balance speed and history:
--   **Hot Storage (RAM)**: The "Live Stream" buffer holds fresh data in memory for immediate RAG context.
--   **Cold Storage (SQLite)**: A background process flushes the buffer to a disk-based SQLite database every 30 seconds, preserving data for long-term historical analysis and trend searching.
+class NewsApiConnector(pw.io.python.ConnectorSubject):
+    def run(self):
+        while True:
+            # ... fetch from API ...
+            yield {
+                "source": "newsapi",
+                "text": article.get('title'),
+                "url": link,
+                # ...
+            }
+            time.sleep(900) # Poll interval
+```
+
+This design enables:
+-   **Incremental Computation**: Pathway's differential dataflow engine processes only new or changed data, not the entire dataset.
+-   **Scalability**: The underlying Rust engine supports multithreading, multiprocessing, and distributed computation, breaking free from Python's GIL limitations.
+-   **Unified Batch/Stream**: The same Pathway code can read static files or live streams, making development and testing seamless.
+
+### 2. Live Data Stream Architecture
+All connectors (NewsAPI, GNews, HackerNews, Reddit, Firecrawl) run as continuous Pathway streams, feeding into a shared in-memory buffer:
+-   **In-Memory Deque**: A thread-safe `collections.deque` acts as the "hot storage," holding the latest ~200 items for instant O(1) access by the RAG engine.
+-   **Batch Persistence**: Items are periodically flushed to SQLite ("cold storage") for historical analysis.
+
+### 3. Frontend Polling & Caching
+-   **`/data` Endpoint**: The frontend polls this endpoint every 60 seconds to refresh the "Global Pulse" sidebar with the latest items from the Pathway stream.
+-   **`/fetch_news` Endpoint**: On-demand category fetches are cached in browser `localStorage` for an instant, app-like experience.
+
+### Why Pathway?
+-   **Python-Native, Rust-Powered**: Write simple Python, get C-level performance.
+-   **Built for RAG**: Native support for LLM pipelines, vector indexing, and real-time document processing.
+-   **Production-Ready**: Designed for deployment with Docker and Kubernetes, with built-in monitoring dashboards.
 
 ---
 
