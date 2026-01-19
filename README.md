@@ -115,44 +115,105 @@ sequenceDiagram
 
 ## Installation & Usage
 
-### Prerequisites
-*   Python 3.10+
-*   API Keys: Gemini, Groq, NewsAPI, GNews (configured in `.env` and `config.yaml`).
+Follow these steps to deploy the system locally.
 
-### 1. Setup
+### 1. Prerequisites
+*   **Python**: Version 3.10 or higher.
+*   **API Keys**: You need keys for:
+    *   **Gemini** (Google AI)
+    *   **Groq** (Llama 3 Inference)
+    *   **NewsAPI** (Breaking News)
+    *   **GNews** (Historical Data)
+
+### 2. Configuration
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/your-repo/LiveSocialAnalyst.git
+    cd LiveSocialAnalyst
+    ```
+2.  Create a `.env` file (or update `config.yaml`) with your credentials:
+    ```env
+    GEMINI_API_KEY=your_key_here
+    GROQ_API_KEY=your_key_here
+    NEWSAPI_KEY=your_key_here
+    GNEWS_API_KEY=your_key_here
+    ```
+
+### 3. Install Dependencies
+Install the required Python packages:
 ```bash
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Run the Backend
+### 4. Execution
+Run the main application script. This initializes the FastAPI server and spawns the 5 background Pathway daemon threads (News, Social, OPML, Firecrawl, GNews).
+
 ```bash
-# Starts FastAPI server on port 8000
 python3 app_pathway.py
 ```
+*Expected Output*:
+> `INFO: Uvicorn running on http://0.0.0.0:8000`
+> `🚀 OPML: Starting to parse 1800+ RSS feeds...`
 
-### 3. Access the Frontend
-Open `frontend/index.html` in your browser, or visit: `http://localhost:8000/app`
+### Real-Time Streaming Mechanics
+The application uses a **Pull-Push Hybrid Model** for maximum responsiveness:
+1.  **Passive Mode**: The dashboard polls `/data` every 30 seconds for background updates from the Pathway Engine.
+2.  **Active Mode (Real-Time Interrupt)**:
+    *   Click the **"Fetch Live"** button in the UI header.
+    *   This sends a `POST /refresh_opml` signal to the backend.
+    *   The **Pathway Connector (OPML)** immediately terminates its current shuffle cycle.
+    *   It re-fetches high-priority sources in **real-time** (< 1 sec latency).
+    *   The UI updates via the modal with fresh items that were just ingested.
 
-### 4. How to Use
-1.  **View Feed**: The main page shows a Bento grid of top news.
-2.  **Filter Topics**: Click "Business", "Tech", etc.
-3.  **Fetch Live**: Click the button in the header.
-    *   *Action*: Forces restart of OPML scanning.
-    *   *Result*: Modal with latest 10 items.
-4.  **Ask AI**: Use the search bar for queries.
+---
+
+## API Endpoints Reference
+
+The system exposes a RESTful API for frontend integration and external webhooks.
+
+| Method | Endpoint | Description | Payload / Params |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/` | Landing Page | None |
+| `GET` | `/app` | Main Dashboard Application | None |
+| `GET` | `/data` | Fetch current engine stats and memory buffer dump | None |
+| `POST` | `/fetch_news` | Get categorical news (Business, Tech, etc.) | `{"category": "business"}` |
+| `POST` | `/query` | Perform RAG Analysis (Search) | `{"query": "Shark Tank"}` |
+| `POST` | `/refresh_opml` | **Interrupt Signal**: Forces immediate OPML refresh | None |
 
 ---
 
 ## Project Structure
 
-*   `app_pathway.py`: Main entry point and Pathway configuration.
-*   `ingest/`: Connector modules.
-*   `pipeline/`: RAG logic and LLM integration.
-*   `frontend/`: Static HTML/JS UI.
-*   `data/`: SQLite database and local caches.
+A clean, modular architecture designed for scalability.
+
+```
+LiveSocialAnalyst/
+├── app_pathway.py         # MAIN ENTRY POINT: Server & Thread Orchestrator
+├── config.yaml            # Global Configuration
+├── requirements.txt       # Dependency List
+├── .env                   # Secrets (GitIgnored)
+│
+├── ingest/                # PATHWAY CONNECTORS (Data Ingestion)
+│   ├── opml_loader.py     # High-Throughput (1800+ Feeds)
+│   ├── newsapi_connector.py
+│   ├── gnews_connector.py
+│   ├── reddit_stream.py
+│   └── hackernews_stream.py
+│
+├── pipeline/              # INTELLIGENCE LAYER
+│   └── gemini_rag.py      # Hybrid RAG & LLM Logic
+│
+├── frontend/              # PRESENTATION LAYER
+│   ├── index.html         # Main SPA Dashboard
+│   ├── landing.html       # Intro Page
+│   └── assets/
+│
+└── data/                  # PERSISTENCE LAYER
+    ├── database.py        # SQLite Interface
+    └── storage/           # Local vector stores
+```
 
 ---
 
 ## License
-MIT License.
+MIT License. Built for High-Performance Data Engineering.
