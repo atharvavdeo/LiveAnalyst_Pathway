@@ -911,20 +911,7 @@
         </div>
     </div>
 
-    <!-- 5. LIVE PIPELINE DEMO SECTION -->
-    <div class="live-pipeline-section">
-        <div class="pipeline-header">
-            <h2>🔴 Live Pathway Pipeline Demo</h2>
-            <p>Real-time data streaming from NewsAPI, GNews, HackerNews & 1800+ RSS Feeds</p>
-            <div class="pipeline-status">
-                <div class="status-dot"></div>
-                <span id="pipeline-status-text">Connecting to streams...</span>
-            </div>
-        </div>
-        <div class="live-news-grid" id="live-pipeline-feed">
-            <!-- JS will inject live news cards here -->
-        </div>
-    </div>
+
 
     <!-- BOOKMARK FLOATING BUTTON -->
     <div class="bookmark-fab" onclick="toggleBookmarkPanel()">
@@ -1127,6 +1114,7 @@
         }
 
         // --- 1. STARTUP LOGIC ---
+        // --- 1. STARTUP LOGIC ---
         function selectCategory(category) {
             currentCategory = category;
 
@@ -1148,77 +1136,8 @@
             // Load Fun Stream after 3000ms
             setTimeout(loadFunStream, 3000);
 
-            // Load Live Pipeline Demo
-            loadLivePipelineDemo();
-            setInterval(loadLivePipelineDemo, 10000); // High-frequency OPML Sync (10s)
-        }
-
-        // --- LIVE PIPELINE DEMO ---
-        async function loadLivePipelineDemo() {
-            const container = document.getElementById("live-pipeline-feed");
-            const statusText = document.getElementById("pipeline-status-text");
-
-            try {
-                const response = await fetch(API_BASE + '/data');
-                const data = await response.json();
-
-                // Combine all sources and get 5 most recent
-                const allItems = [
-                    ...(data.gnews || []),
-                    ...(data.newsapi || []),
-                    ...(data.hackernews || []),
-                    ...(data.reddit || []),
-                    ...(data.firecrawl || []),
-                    ...(data.opml || [])
-                ];
-
-                // Sort by timestamp (most recent first)
-                allItems.sort((a, b) => {
-                    const timeA = new Date(a.created_utc || 0).getTime();
-                    const timeB = new Date(b.created_utc || 0).getTime();
-                    return timeB - timeA;
-                });
-
-                const top5 = allItems.slice(0, 5);
-
-                if (top5.length > 0) {
-                    statusText.textContent = `LIVE • ${data.stats?.news || 0} news | ${data.stats?.social || 0} social | ${data.stats?.opml || 0} RSS`;
-
-                    container.innerHTML = top5.map((item, idx) => {
-                        const img = item.image_url || `https://picsum.photos/seed/${Math.random()}/400/200`;
-                        const source = (item.source || 'Unknown').split('_')[0].toUpperCase();
-                        const timeAgo = calculateTimeAgo(item.created_utc);
-                        const itemJson = JSON.stringify(item).replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                        const isSaved = isBookmarked(item.url);
-
-                        return `
-                            <div class="live-news-card" style="position:relative;">
-                                <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" onclick="event.stopPropagation(); addBookmark(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item))}')))">
-                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
-                                    </svg>
-                                </button>
-                                <div onclick="window.open('${item.url}', '_blank')" style="cursor:pointer;">
-                                    <img src="${img}" alt="News" onerror="this.src='https://via.placeholder.com/400x200?text=Live+Stream'">
-                                    <div class="card-content">
-                                        <h4>${item.text || 'Breaking News'}</h4>
-                                        <div class="card-meta">
-                                            <span class="source-badge">${source}</span>
-                                            <span class="time-ago">${timeAgo}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                } else {
-                    statusText.textContent = 'Buffering...';
-                    container.innerHTML = '<p style="color:rgba(255,255,255,0.5); text-align:center; grid-column:1/-1;">Waiting for data streams...</p>';
-                }
-            } catch (e) {
-                console.error("Live pipeline error:", e);
-                statusText.textContent = 'Connection Error';
-            }
+            // Auto-refresh main feed every 30s to pull in new live data
+            setInterval(() => loadCategoryData(currentCategory), 30000);
         }
 
         async function loadFunStream() {
@@ -1239,10 +1158,8 @@
                     ];
 
                     container.innerHTML = result.items.map((item, i) => {
-                        // Logic: Item Title + Random Inline Image
                         const style = styles[i % styles.length];
                         const img = item.image_url || `https://picsum.photos/seed/${i}/100`;
-
                         return `
                             <span class="fun-link" onclick="window.open('${item.url}', '_blank')">${item.text}</span>
                             <img class="fun-img" src="${img}" style="border-radius:${style.radius}; transform:rotate(${style.rotate})" alt="Fun Thumb">
@@ -1258,39 +1175,79 @@
             const listContainer = document.getElementById("list-feed");
             const heroContainer = document.getElementById("hero-container");
             const storageKey = `news_cache_${category}`;
+            const loader = `<p style="text-align:center; padding:40px; font-weight:700; color:#000;">Loading combined streams...</p>`;
 
-            const loader = `<p style="text-align:center; padding:40px; font-weight:700; color:#000;">FETCHING FROM NEWSAPI...</p>`;
-
-            // A. Check Local Cache first
+            // A. Check Local Cache first (only if container is empty)
             const cached = localStorage.getItem(storageKey);
-            if (cached) {
+            if (cached && listContainer.innerHTML.trim() === "") {
                 const data = JSON.parse(cached);
                 renderMainFeed(data);
-                console.log(`📦 Loaded ${data.length} items from cache for ${category}`);
-                document.getElementById("refresh-indicator").innerText = "Refreshing...";
-            } else {
+            } else if (listContainer.innerHTML.trim() === "") {
                 listContainer.innerHTML = loader;
             }
 
-            // B. Fetch Fresh from Backend
+            // B. Fetch Fresh from Backend (Parallel: NewsAPI + Live Stream)
             try {
-                const response = await fetch(API_BASE + '/fetch_news', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ category: category.toLowerCase() })
-                });
-                const result = await response.json();
+                const [newsRes, liveRes] = await Promise.all([
+                    fetch(API_BASE + '/fetch_news', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ category: category.toLowerCase() })
+                    }),
+                    fetch(API_BASE + '/data') // Live Data (OPML, Reddit, etc.)
+                ]);
 
-                if (result.items && result.items.length > 0) {
-                    renderMainFeed(result.items);
-                    localStorage.setItem(storageKey, JSON.stringify(result.items)); // Update Cache
+                const newsData = await newsRes.json();
+                const liveData = await liveRes.json();
+
+                // 1. Process NewsAPI Items
+                let combinedItems = newsData.items || [];
+
+                // 2. Process Live Stream Items (Filter by Category)
+                const liveStreams = [
+                    ...(liveData.opml || []),
+                    ...(liveData.reddit || []),
+                    ...(liveData.hackernews || []) // HN is usually Tech
+                ];
+
+                const relevantLive = liveStreams.filter(item => {
+                    if (!item.category) {
+                        // If no category, include in 'General' or defaults
+                        return category === 'General' || category === 'Technology'; // Assume tech for reddit/hn
+                    }
+                    return item.category.toLowerCase().includes(category.toLowerCase());
+                });
+
+                combinedItems = [...combinedItems, ...relevantLive];
+
+                // 3. Deduplicate (by URL)
+                const seen = new Set();
+                const uniqueItems = [];
+                for (const item of combinedItems) {
+                    if (!seen.has(item.url)) {
+                        seen.add(item.url);
+                        uniqueItems.push(item);
+                    }
+                }
+
+                // 4. Sort by Date (Newest First)
+                uniqueItems.sort((a, b) => {
+                    const tA = new Date(a.created_utc || 0).getTime();
+                    const tB = new Date(b.created_utc || 0).getTime();
+                    return tB - tA;
+                });
+
+                if (uniqueItems.length > 0) {
+                    renderMainFeed(uniqueItems);
+                    localStorage.setItem(storageKey, JSON.stringify(uniqueItems));
                     document.getElementById("refresh-indicator").innerText = "Live";
                 } else if (!cached) {
                     listContainer.innerHTML = `<p style="text-align:center; padding:40px;">No recent news found for ${category}.</p>`;
                 }
+
             } catch (err) {
                 console.error("Fetch error:", err);
-                if (!cached) listContainer.innerHTML = `<p style="text-align:center; color:red;">Connection Failed.</p>`;
+                if (!cached) listContainer.innerHTML = `<p style="text-align:center; color:red;">Connection error.</p>`;
             }
         }
 
