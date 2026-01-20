@@ -90,38 +90,61 @@ graph LR
 
 This subsystem ensures that the platform has access to a massive, uncensored stream of global information by processing **thousands of global RSS feeds** in real-time.
 
-### Core Components
-1.  **OPMLIngestor Class**:
-    *   **Role**: The engine core. Downloads massive OPML lists and manages feed URLs.
-    *   **Firehose Injection**: Prioritizes high-frequency feeds (BBC, CNN, Reuters) at the start of every cycle.
-    *   **Burst Mode**: Switches from "polite crawler" to "zero-sleep ingestion" mode upon manual trigger to ingest the entire stream instantly.
+## 🛠️ Integrated Pathway Technologies
 
-2.  **Global Thread Manager**:
-    *   **Role**: Instantiates a Global Instance of the ingestor at startup to maintain state.
+This project strictly adheres to the **Pathway Live Data Framework**, leveraging its core components for real-time ingestion, transformation, and reasoning.
 
-### OPML Data Flow Diagram
+### 1. Live Data Ingestion with Pathway Connectors
+We utilize **Pathway's Custom Python Connectors**  to ingest streaming data from diverse sources that don't have native adapters.
+*   **Custom OPML Connector**: An extended `pw.io.python.read` connector that continuously scans 1000+ RSS feeds, normalizing XML into a unified schema in real-time.
+*   **Social Stream Connectors**: Custom connectors for **Twitter/X**, **HackerNews**, and **NewsData.io**, treating API endpoints as infinite streaming tables.
+
+### 2. Streaming Transformations & Windows
+All data processing is performed in **streaming mode** using Pathway's table operations:
+*   **Incremental Deduplication**: Using `pw.io.deduplicate` to identify and merge identical stories from different sources (e.g., Reuters vs. AP coverage of the same event).
+*   **Temporal Windows**: We employ **Sliding Windows** to group articles by events, enabling the system to detect "breaking news clusters" effectively.
+*   **Real-Time Feature Engineering**: Signals like "virality score" are computed on-the-fly as data flows through the pipeline.
+
+### 3. LLM Integration (LLM xPack)
+We integrate **Pathway's LLM xPack** for the RAG pipeline:
+*   **Live Retrieval**: Connecting the live vector index directly to the generation model.
+*   **Reasoning**: The system doesn't just retrieve; it *reasons* over the latest 5-minute window to answer "Why is this happening now?"
+
+---
+
+### Architecture Diagram
 ```mermaid
-sequenceDiagram
-    participant User as "Frontend (Pulse)"
-    participant API as "FastAPI (/refresh_opml)"
-    participant Engine as "Pathway Connector (OPML)"
-    participant Web as "Global News Web"
-    participant Cache as "No-Store Response"
+graph LR
+    User[User Frontend]
+    API[FastAPI Backend]
 
-    Note over Engine, Web: Standard Mode: Polite Crawling
-    Engine->>Web: Fetch Feeds (0.05s Sleep)
-    
-    User->>API: Click "Fetch Live"
-    API->>Engine: ACTIVATE BURST MODE
-    API-->>User: 200 OK
-    
-    Note over Engine: Sleep = 0.0s (Max Speed)
-    Engine->>Web: FETCH ALL FEEDS INSTANTLY
-    Web-->>Engine: XML Data
-    Engine->>Cache: Yield FRESH Items
-    
-    User->>Cache: Polls /data (Every 1.5s)
-    Cache-->>User: Returns Real-Time Stream
+    subgraph Inputs ["Pathway Connectors (Custom)"]
+        direction TB
+        OPML["OPML Stream<br/>(pw.io.python.read)"]
+        NewsData["NewsData Stream"]
+        Social["Social Stream"]
+    end
+
+    subgraph Core ["Pathway ETL Engine"]
+        direction TB
+        Dedup[Incremental Dedup]
+        Window[Sliding Windows]
+        Vector[Live Vector Index]
+    end
+
+    subgraph AI ["LLM xPack"]
+        direction TB
+        RAG[Real-Time RAG]
+        Gen[Gemini 1.5 Generated]
+    end
+
+    Inputs -->|Stream| Core
+    Core -->|Transform| Vector
+    Vector -->|Retrieve| AI
+    User --> API
+    API --> AI
+    AI --> API
+    API --> User
 ```
 
 ---
