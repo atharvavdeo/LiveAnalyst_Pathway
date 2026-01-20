@@ -6,24 +6,24 @@
 [![Groq](https://img.shields.io/badge/AI-Groq%20Llama%203-orange)](https://groq.com)
 [![Gemini](https://img.shields.io/badge/AI-Gemini%203.0-blue)](https://deepmind.google/technologies/gemini/)
 
-## 🚨 The Problem with Stale Knowledge
+##  The Problem with Stale Knowledge
 In the current landscape of artificial intelligence, many applications powered by Large Language Models (LLMs) are constrained by a fundamental limitation: **their knowledge is static**. Retrieval-Augmented Generation (RAG) systems, while powerful, often rely on a knowledge base that is a mere snapshot in time.
 
 This creates a **"knowledge cutoff,"** where an AI assistant can become instantly obsolete. Imagine a financial chatbot unaware of a market-moving announcement made minutes ago, or a customer service bot providing information based on documentation that was updated yesterday. In a world that operates in real-time, **these delays are critical failures**.
 
-## ⚡ The Paradigm Shift to "Live AI"
+##  The Paradigm Shift to "Live AI"
 A new paradigm is emerging to address this challenge: **"Live AI."** This represents a fundamental shift from static, retrospective intelligence to dynamic systems that perceive, learn, and reason in real-time.
 
 **Live Social Analyst** is perpetually synchronized with the latest version of reality, processing information as it is created, modified, or deleted. This project puts us at the forefront of this transformation.
 
-## 🛠️ Powered by Pathway: The Engine for Live AI
+##  Powered by Pathway: The Engine for Live AI
 The core technology driving this application is **Pathway**, a data processing framework designed specifically for building AI pipelines over **live data streams**.
 
 It allows us to define complex AI workflows that process information **incrementally**, enabling extremely low-latency updates. Its unique architecture unifies batch and streaming data, meaning we can ingest thousands of global sources and instantly reflect them in our RAG pipeline without manual restarts or batch re-indexing.
 
 ---
 
-## ⚙️ How It Works: The "Live AI" Pipeline
+##  How It Works: The "Live AI" Pipeline
 
 This application connects to a dynamic, continuously updating array of data sources and reflects the **absolute latest state of reality** in real-time.
 
@@ -164,8 +164,8 @@ python3 app_pathway.py
 ```
 *Expected Output*:
 > `INFO: Uvicorn running on http://0.0.0.0:8000`
-> `🚀 OPML: Starting to parse 2000+ RSS feeds...`
-> `🔥 Injected 10 High-Frequency Firehose Feeds.`
+> ` OPML: Starting to parse 2000+ RSS feeds...`
+> ` Injected 10 High-Frequency Firehose Feeds.`
 
 ---
 
