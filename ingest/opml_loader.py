@@ -136,20 +136,29 @@ class OPMLIngestor:
                                 # print(f"⚠️ Skipping article with no date: {entry.get('title', 'Unknown')}")
                                 continue
                             
-                            # === FRESHNESS FILTER DISABLED ===
-                            # Frontend handles time filtering with 1h strict filter
-                            # Backend ingests ALL articles for maximum coverage
-                            # try:
-                            #     from datetime import datetime, timezone
-                            #     if 'T' in pub_date:
-                            #         article_time = datetime.fromisoformat(pub_date.replace('Z', '+00:00'))
-                            #     else:
-                            #         article_time = datetime.now(timezone.utc)
-                            #     age_hours = (datetime.now(timezone.utc) - article_time).total_seconds() / 3600
-                            #     if age_hours > 6:
-                            #         continue
-                            # except:
-                            #     pass
+                            
+                            # === STRICT 2-HOUR FRESHNESS FILTER ===
+                            # Only yield articles published in last 2 hours
+                            try:
+                                from datetime import datetime, timezone
+                                if 'T' in pub_date:
+                                    article_time = datetime.fromisoformat(pub_date.replace('Z', '+00:00'))
+                                else:
+                                    # Unparseable date - skip
+                                    continue
+                                
+                                age_hours = (datetime.now(timezone.utc) - article_time).total_seconds() / 3600
+                                
+                                # STRICT: Skip articles older than 2 hours
+                                if age_hours > 2:
+                                    continue
+                                    
+                                # Skip future dates (bad data)
+                                if age_hours < 0:
+                                    continue
+                            except:
+                                # Date parsing failed - skip this article
+                                continue
                             
                             
                             self.seen_entries.add(entry.link)
