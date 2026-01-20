@@ -65,25 +65,35 @@ Core Components:
 4. AI & Inference:
    - LLM: Gemini 1.5 Flash (Primary) / Groq Llama 3 (Fallback)
    - Generates answers using the retrieved real-time context
+
+Deep Dive: The Life of a Data Point (Micro-Architecture):
+1. T+0ms: News is published (RSS/API).
+2. T+10ms: Pathway Connector (`pw.io`) detects the change and appends a row to the input Table.
+3. T+15ms: The Streaming Engine propagates the update.
+   - Deduplication Check: Global state checks if this URL hash was seen recently.
+   - Normalization: HTML stripping and text cleaning (stateless transform).
+4. T+100ms: Embedding: Using `pw.xpacks.llm`, the text is vectorized.
+5. T+120ms: Indexing: The vector is upserted into the KNN index.
+6. T+200ms: Ready for Query: The data is now live and retrievable by the RAG system.
 """)
 
 # 2. Pathway Integration: Connectors & xPack
 pdf.chapter_title('2. Pathway Integration: Connectors & xPack')
 pdf.chapter_body("""
-1. Live Data Ingestion with Pathway Connectors:
+1. Live Data Ingestion with Pathway Connectors (pw.io):
    We utilize Pathway's real-time connector ecosystem to handle diverse data streams:
    - Custom Python Connectors (pw.io.python.read): We implemented a custom OPML connector that acts as an infinite stream of XML data, normalizing it on-the-fly.
-   - API Connectors: Dedicated custom class connectors for NewsData.io and Twitter/X that treat API endpoints as continuous tables.
+   - API Connectors: Custom class connectors for NewsData.io and Twitter/X treating APIs as infinite tables.
 
-2. Streaming Transformations:
+2. Streaming Transformations (pw.temporal & pw.state):
    All feature engineering happens in streaming mode:
-   - Incremental Deduplication: Using pw.io.deduplicate to merge identical stories from different feeds.
-   - Sliding Windows: Temporal windows group high-velocity news events to detect "breaking" clusters.
+   - Incremental Deduplication: Using pw.io.deduplicate(pathway.table) to merge identical stories from different feeds.
+   - Sliding Windows: using pw.temporal.sliding to group high-velocity news events by 5-minute intervals to detect "breaking" clusters.
 
-3. LLM Integration (LLM xPack):
+3. LLM Integration (pw.xpacks.llm):
    We leverage Pathway's LLM xPack to orchestrate the RAG pipeline:
-   - Live Retrieval: The vector index is updated incrementally, allowing the LLM to query data milliseconds after ingestion.
-   - Knowledge Graph: (Conceptual) The system builds a temporal graph of events to understand causality.
+   - pw.xpacks.llm.embedders: Live embedding of incoming text stream.
+   - pw.xpacks.llm.retrievers: The vector index is updated incrementally, allowing the LLM to query data milliseconds after ingestion.
 """)
 
 # 3. Scalability & Extensibility
