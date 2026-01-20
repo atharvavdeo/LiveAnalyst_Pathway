@@ -1974,45 +1974,21 @@
     // 2. GLOBAL PULSE: OPML ONLY, 5s REFRESH
     window.fetchWorldUpdates = async function () {
         try {
-            const response = await fetch(API_BASE + '/data');
+            // Fetch from DB-backed /pulse endpoint for stable, fresh content
+            const response = await fetch(API_BASE + '/pulse');
             const data = await response.json();
 
-            // SHOW ALL SOURCES IN GLOBAL PULSE (not just OPML)
-            const allSources = [
-                ...(data.opml || []),
-                ...(data.gnews || []),
-                ...(data.hackernews || []),
-                ...(data.newsdata || [])
-            ];
+            const pulseItems = data.pulse || [];
 
-            // ULTRA-STRICT FRESHNESS: Only Show < 30 MINUTES, reject future dates
-            const THIRTY_MIN_MS = 30 * 60 * 1000;
-            const now = Date.now();
-            const freshPulse = allSources.filter(item => {
-                if (!item.created_utc) return false;
-
-                const itemTime = new Date(item.created_utc).getTime();
-                if (isNaN(itemTime)) return false; // Invalid date
-
-                const age = now - itemTime;
-
-                // Reject if more than 1 min in future (clock skew tolerance)
-                if (age < -60000) return false;
-
-                // Reject if older than 30 minutes
-                if (age > THIRTY_MIN_MS) return false;
-
-                return true;
-            });
-
-            // Sort: Newest First
-            freshPulse.sort((a, b) => new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime());
-            const top5 = freshPulse.slice(0, 5);
+            if (pulseItems.length === 0) {
+                console.log("⚠️ No fresh articles in last 30min from DB");
+                return;
+            }
 
             const container = document.getElementById("global-updates");
 
             container.innerHTML = pulseItems.map((item, index) => {
-                const safeSource = (item.feed_title || item.source || 'OPML').toUpperCase();
+                const safeSource = (item.feed_title || item.source || 'NEWS').toUpperCase();
 
                 return `
                 <div class="popular-item" onclick="window.open('${item.url}', '_blank')" style="cursor:pointer; border-bottom:1px solid #ddd; padding:15px 0;">
@@ -2024,7 +2000,6 @@
                 </div>
             `;
             }).join('');
-        }
         } catch (e) { console.error("Pulse Error", e); }
     };
 
