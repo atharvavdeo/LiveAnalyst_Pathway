@@ -111,12 +111,16 @@ def startup():
     threading.Thread(target=run_connector, args=(RedditConnector().run(), "reddit"), daemon=True).start()
     threading.Thread(target=run_connector, args=(FirecrawlConnector().run(), "firecrawl"), daemon=True).start()
     
+    # 🐦 TWITTER: Real-time tweets for breaking news (<30s latency)
+    from ingest.twitter_connector import TwitterConnector
+    threading.Thread(target=run_connector, args=(TwitterConnector().run(), "twitter"), daemon=True).start()
+    
     # 🚀 OPML Mass Ingestion (1800+ feeds) - Aggressive Frequency (2s between cycles)
     global global_opml
     global_opml = OPMLIngestor(DEFAULT_OPML_URLS, poll_frequency=2)
     threading.Thread(target=run_connector, args=(global_opml.run(), "opml"), daemon=True).start()
     
-    print("✅ All streams active (NewsData.io + OPML + GNews + HackerNews)")
+    print("✅ All streams active (Twitter + OPML + GNews + HackerNews)")
 
 # --- NEW ENDPOINT FOR DYNAMIC CATEGORIES ---
 class CategoryRequest(BaseModel):
