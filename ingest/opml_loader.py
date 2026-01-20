@@ -87,11 +87,6 @@ class OPMLIngestor:
         print(f"🚀 OPML: Starting to parse {len(self.feed_urls)} RSS feeds...")
         
         while True:
-            # CRITICAL: Clear seen_entries at start of EVERY cycle to re-yield recent articles
-            # This ensures fresh display on every scan, not just on manual refresh
-            print(f"🧹 Clearing {len(self.seen_entries)} seen entries from previous cycle")
-            self.seen_entries.clear()
-            
             # Convert to list and shuffle to avoid hammering one server
             feeds = list(self.feed_urls)
             random.shuffle(feeds)
