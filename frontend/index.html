@@ -1977,12 +1977,17 @@
             const response = await fetch(API_BASE + '/data');
             const data = await response.json();
 
-            // USER DEMAND: ONLY OPML IN GLOBAL PULSE
-            const opmlOnly = data.opml || [];
+            // SHOW ALL SOURCES IN GLOBAL PULSE (not just OPML)
+            const allSources = [
+                ...(data.opml || []),
+                ...(data.gnews || []),
+                ...(data.hackernews || []),
+                ...(data.newsdata || [])
+            ];
 
             // STRICT FRESHNESS: Only Show < 24h
             const now = Date.now();
-            const freshPulse = opmlOnly.filter(item => {
+            const freshPulse = allSources.filter(item => {
                 if (!item.created_utc) return false;
                 return (now - new Date(item.created_utc).getTime()) < (24 * 60 * 60 * 1000);
             });
