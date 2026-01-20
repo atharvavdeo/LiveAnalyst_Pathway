@@ -2011,11 +2011,10 @@
 
             const container = document.getElementById("global-updates");
 
-            if (top5.length > 0) {
-                container.innerHTML = top5.map((item, index) => {
-                    const safeSource = (item.feed_title || item.source || 'OPML').toUpperCase();
+            container.innerHTML = pulseItems.map((item, index) => {
+                const safeSource = (item.feed_title || item.source || 'OPML').toUpperCase();
 
-                    return `
+                return `
                 <div class="popular-item" onclick="window.open('${item.url}', '_blank')" style="cursor:pointer; border-bottom:1px solid #ddd; padding:15px 0;">
                     <div class="index-circle" style="background:#000; color:#fff; font-family:'Outfit'; font-weight:700;">${index + 1}</div>
                     <div class="popular-info">
@@ -2024,8 +2023,8 @@
                     </div>
                 </div>
             `;
-                }).join('');
-            }
+            }).join('');
+        }
         } catch (e) { console.error("Pulse Error", e); }
     };
 
