@@ -290,15 +290,20 @@ def get_data():
 def get_global_pulse():
     """Return top 5 freshest articles from DB for Global Pulse"""
     try:
-        from datetime import datetime, timedelta, timezone
+        import sqlite3
         import time
+        from pathlib import Path
+        
+        # Connect to DB
+        db_path = Path(__file__).parent / "data" / "news_archive.db"
+        conn = sqlite3.connect(str(db_path))
+        cursor = conn.cursor()
         
         # Get articles from last 2 hours (timestamp is unix epoch)
         two_hours_ago = time.time() - (2 * 60 * 60)
         
-        cursor = db_conn.cursor()
         cursor.execute("""
-            SELECT source, title, url, published_date, content
+            SELECT source, title, url, published_date, content, created_at
             FROM articles
             WHERE created_at > ?
             ORDER BY created_at DESC
@@ -306,18 +311,23 @@ def get_global_pulse():
         """, (two_hours_ago,))
         
         rows = cursor.fetchall()
+        conn.close()
         
         pulse_items = []
         for row in rows:
+            # Convert unix timestamp to ISO format for frontend
+            from datetime import datetime, timezone
+            created_dt = datetime.fromtimestamp(row[5], tz=timezone.utc)
+            
             pulse_items.append({
                 "source": row[0],
-                "text": row[1] or row[4][:200] if row[4] else row[1],  # title or content preview
+                "text": row[1] if row[1] else (row[4][:200] if row[4] else "No title"),
                 "url": row[2],
-                "created_utc": row[3],  # published_date
-                "feed_title": row[0]
+                "created_utc": created_dt.isoformat(),
+                "feed_title": row[0].upper()
             })
         
-        print(f"✅ /pulse: Returning {len(pulse_items)} fresh articles")
+        print(f"✅ /pulse: Returning {len(pulse_items)} fresh articles from DB")
         return {"pulse": pulse_items}
     except Exception as e:
         print(f"❌ Pulse endpoint error: {e}")
