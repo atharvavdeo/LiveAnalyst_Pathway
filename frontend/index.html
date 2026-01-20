@@ -890,30 +890,139 @@
         }
     </style>
 
-<style>
-/* ANTIGRAVITY AESTHETIC PATCH */
-.live-modal { position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:600px; max-width:90%; background:rgba(20, 20, 20, 0.95); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); z-index:10000; backdrop-filter:blur(10px); display:none; flex-direction:column; gap:16px; }
-.live-modal-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px; }
-.live-modal-title { font-size:1.4rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px; }
-.live-modal-close { background:none; border:none; color:#888; cursor:pointer; font-size:1.5rem; }
-.live-modal-list { display:flex; flex-direction:column; gap:12px; max-height:60vh; overflow-y:auto; }
-.live-item { background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; cursor:pointer; transition:all 0.2s; border:1px solid transparent; }
-.live-item:hover { background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.1); }
-.live-item-top { display:flex; justify-content:space-between; font-size:0.75rem; color:#888; margin-bottom:6px; }
-.live-item-source { font-weight:600; color:#aaa; text-transform:uppercase; letter-spacing:0.5px; }
-.live-item-time { color:#666; }
-.live-item h4 { margin:0; font-size:1rem; color:#eee; font-weight:500; line-height:1.4; }
-.toast-notification { position:fixed; bottom:30px; right:30px; background:#111; border:1px solid #333; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; box-shadow:0 10px 15px -3px rgba(0,0,0,0.5); display:flex; align-items:center; gap:10px; font-size:0.9rem; animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-@keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-</style>
-<!-- LIVE MODAL CONTAINER -->
-<div id="live-modal" class="live-modal">
-    <div class="live-modal-header">
-        <div class="live-modal-title">⚡ Live Updates</div>
-        <button class="live-modal-close" onclick="closeLiveModal()">×</button>
+    <style>
+        /* ANTIGRAVITY AESTHETIC PATCH */
+        .live-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            max-width: 90%;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .live-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 12px;
+        }
+
+        .live-modal-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .live-modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .live-modal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .live-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .live-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .live-item-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .live-item-source {
+            font-weight: 600;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .live-item-time {
+            color: #666;
+        }
+
+        .live-item h4 {
+            margin: 0;
+            font-size: 1rem;
+            color: #eee;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #111;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+    <!-- LIVE MODAL CONTAINER -->
+    <div id="live-modal" class="live-modal">
+        <div class="live-modal-header">
+            <div class="live-modal-title">⚡ Live Updates</div>
+            <button class="live-modal-close" onclick="closeLiveModal()">×</button>
+        </div>
+        <div id="live-modal-content" class="live-modal-list"></div>
     </div>
-    <div id="live-modal-content" class="live-modal-list"></div>
-</div>
 
 
 
@@ -1844,51 +1953,51 @@
 
 
 <script>
-// === ANTIGRAVITY RESTORE: VERGE ORIGINAL THEME ===
+    // === ANTIGRAVITY RESTORE: VERGE ORIGINAL THEME ===
 
-// 1. UTC-Aware Time Ago
-function calculateTimeAgo(dateString) {
-    if (!dateString) return '';
-    try {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime(); 
-        const seconds = Math.floor(diffMs / 1000);
-        if (seconds < 60) return 'JUST NOW';
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return `${minutes}M AGO`;
-        const hours = Math.floor(minutes / 60);
-        return hours < 24 ? `${hours}H AGO` : `${Math.floor(hours / 24)}D AGO`;
-    } catch(e) { return ''; }
-}
+    // 1. UTC-Aware Time Ago
+    function calculateTimeAgo(dateString) {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now.getTime() - date.getTime();
+            const seconds = Math.floor(diffMs / 1000);
+            if (seconds < 60) return 'JUST NOW';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}M AGO`;
+            const hours = Math.floor(minutes / 60);
+            return hours < 24 ? `${hours}H AGO` : `${Math.floor(hours / 24)}D AGO`;
+        } catch (e) { return ''; }
+    }
 
-// 2. GLOBAL PULSE: OPML ONLY, 5s REFRESH
-window.fetchWorldUpdates = async function() {
-    try {
-        const response = await fetch(API_BASE + '/data');
-        const data = await response.json();
+    // 2. GLOBAL PULSE: OPML ONLY, 5s REFRESH
+    window.fetchWorldUpdates = async function () {
+        try {
+            const response = await fetch(API_BASE + '/data');
+            const data = await response.json();
 
-        // USER DEMAND: ONLY OPML IN GLOBAL PULSE
-        const opmlOnly = data.opml || [];
+            // USER DEMAND: ONLY OPML IN GLOBAL PULSE
+            const opmlOnly = data.opml || [];
 
-        // STRICT FRESHNESS: Only Show < 24h
-        const now = Date.now();
-        const freshPulse = opmlOnly.filter(item => {
-            if (!item.created_utc) return false;
-            return (now - new Date(item.created_utc).getTime()) < (24 * 60 * 60 * 1000);
-        });
+            // STRICT FRESHNESS: Only Show < 24h
+            const now = Date.now();
+            const freshPulse = opmlOnly.filter(item => {
+                if (!item.created_utc) return false;
+                return (now - new Date(item.created_utc).getTime()) < (24 * 60 * 60 * 1000);
+            });
 
-        // Sort: Newest First
-        freshPulse.sort((a,b) => new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime());
-        const top5 = freshPulse.slice(0, 5);
+            // Sort: Newest First
+            freshPulse.sort((a, b) => new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime());
+            const top5 = freshPulse.slice(0, 5);
 
-        const container = document.getElementById("global-updates");
-        
-        if (top5.length > 0) {
-            container.innerHTML = top5.map((item, index) => {
-                const safeSource = (item.feed_title || item.source || 'OPML').toUpperCase();
-                
-                return `
+            const container = document.getElementById("global-updates");
+
+            if (top5.length > 0) {
+                container.innerHTML = top5.map((item, index) => {
+                    const safeSource = (item.feed_title || item.source || 'OPML').toUpperCase();
+
+                    return `
                 <div class="popular-item" onclick="window.open('${item.url}', '_blank')" style="cursor:pointer; border-bottom:1px solid #ddd; padding:15px 0;">
                     <div class="index-circle" style="background:#000; color:#fff; font-family:'Outfit'; font-weight:700;">${index + 1}</div>
                     <div class="popular-info">
@@ -1897,43 +2006,43 @@ window.fetchWorldUpdates = async function() {
                     </div>
                 </div>
             `;
-            }).join('');
+                }).join('');
+            }
+        } catch (e) { console.error("Pulse Error", e); }
+    };
+
+    // AUTO-REFRESH GLOBAL PULSE EVERY 5 SECONDS
+    setInterval(window.fetchWorldUpdates, 5000);
+
+
+    // 3. MAIN FEED: MIXED SOURCES, MASONRY GRID, SHARP CORNERS
+    window.renderMainFeed = function (items) {
+        const listContainer = document.getElementById("list-feed");
+        const heroContainer = document.getElementById("hero-container");
+        const now = Date.now();
+
+        // 1. STRICT FRONTEND FILTER (24h Hard Limit)
+        // Filter out blacklist AND old items
+        items = items.filter(i => {
+            if (i.text.includes("Don't let your backend write checks")) return false;
+            if (!i.created_utc) return true; // Keep if no date, but maybe dangerous
+            const ageMs = now - new Date(i.created_utc).getTime();
+            return ageMs < (24 * 60 * 60 * 1000); // 24 HOURS
+        });
+
+        if (!items || items.length === 0) {
+            if (!listContainer.innerHTML.includes("available")) {
+                listContainer.innerHTML = '<p style="text-align:center; padding:40px; font-weight:bold; font-family:var(--font-head);">NO FRESH NEWS AVAILABLE</p>';
+            }
+            return;
         }
-    } catch (e) { console.error("Pulse Error", e); }
-};
 
-// AUTO-REFRESH GLOBAL PULSE EVERY 5 SECONDS
-setInterval(window.fetchWorldUpdates, 5000);
+        const heroItem = items[0];
+        const heroHasImage = heroItem.image_url && heroItem.image_url.startsWith('http');
 
-
-// 3. MAIN FEED: MIXED SOURCES, MASONRY GRID, SHARP CORNERS
-window.renderMainFeed = function(items) {
-    const listContainer = document.getElementById("list-feed");
-    const heroContainer = document.getElementById("hero-container");
-    const now = Date.now();
-
-    // 1. STRICT FRONTEND FILTER (24h Hard Limit)
-    // Filter out blacklist AND old items
-    items = items.filter(i => {
-        if (i.text.includes("Don't let your backend write checks")) return false;
-        if (!i.created_utc) return true; // Keep if no date, but maybe dangerous
-        const ageMs = now - new Date(i.created_utc).getTime();
-        return ageMs < (24 * 60 * 60 * 1000); // 24 HOURS
-    });
-
-    if (!items || items.length === 0) {
-        if (!listContainer.innerHTML.includes("available")) {
-             listContainer.innerHTML = '<p style="text-align:center; padding:40px; font-weight:bold; font-family:var(--font-head);">NO FRESH NEWS AVAILABLE</p>';
-        }
-        return;
-    }
-
-    const heroItem = items[0];
-    const heroHasImage = heroItem.image_url && heroItem.image_url.startsWith('http');
-    
-    // HERO RENDER (Sharp, Bold, Black Text)
-    // Using 'Outfit' for headers
-    heroContainer.innerHTML = `
+        // HERO RENDER (Sharp, Bold, Black Text)
+        // Using 'Outfit' for headers
+        heroContainer.innerHTML = `
         <div class="hero-article" style="margin-bottom:60px; cursor:pointer;" onclick="window.open('${heroItem.url}', '_blank')">
             <div class="hero-image-wrap" style="${!heroHasImage ? 'display:none;' : ''}">
                 <img src="${heroItem.image_url}" style="width:100%; height:500px; object-fit:cover; border-radius:0;" onerror="this.style.display='none'">
@@ -1949,15 +2058,15 @@ window.renderMainFeed = function(items) {
         </div>
     `;
 
-    // GRID RENDER (Sharp Cards, Black Text)
-    const gridHTML = items.slice(1).map(item => {
-        const hasImage = item.image_url && item.image_url.startsWith('http');
-        const sourceName = (item.source || '').split('_')[0];
-        const timeAgo = calculateTimeAgo(item.created_utc);
-        const snippet = stripHtml(item.description || item.text || "").substring(0, 100) + '...';
-        
-        // VERGE STYLE CARD
-        return `
+        // GRID RENDER (Sharp Cards, Black Text)
+        const gridHTML = items.slice(1).map(item => {
+            const hasImage = item.image_url && item.image_url.startsWith('http');
+            const sourceName = (item.source || '').split('_')[0];
+            const timeAgo = calculateTimeAgo(item.created_utc);
+            const snippet = stripHtml(item.description || item.text || "").substring(0, 100) + '...';
+
+            // VERGE STYLE CARD
+            return `
         <div class="feed-card" style="border-top:4px solid #000; padding-top:15px; cursor:pointer; margin-bottom:20px;" onclick="window.open('${item.url}', '_blank')">
              <div class="card-meta" style="color:#FF0055; font-weight:800; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; font-family:'Outfit';">
                     ${sourceName} <span style="color:#888;">// ${timeAgo}</span>
@@ -1975,324 +2084,319 @@ window.renderMainFeed = function(items) {
             </div>
         </div>
         `;
-    }).join('');
+        }).join('');
 
-    listContainer.innerHTML = `
+        listContainer.innerHTML = `
         <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:40px;">
             ${gridHTML}
         </div>
     `;
-};
+    };
 
-// 4. MAIN FEED AUTO REFRESH (15s)
-if (window.feedInterval) clearInterval(window.feedInterval);
-window.feedInterval = setInterval(() => {
-    if (typeof window.loadCategoryData === 'function' && window.currentCategory) {
-        console.log("⚡ Auto-refreshing Main Feed...");
-        window.loadCategoryData(window.currentCategory); 
-    }
-}, 15000);
+    // 4. MAIN FEED AUTO REFRESH (15s)
+    if (window.feedInterval) clearInterval(window.feedInterval);
+    window.feedInterval = setInterval(() => {
+        if (typeof window.loadCategoryData === 'function' && window.currentCategory) {
+            console.log("⚡ Auto-refreshing Main Feed...");
+            window.loadCategoryData(window.currentCategory);
+        }
+    }, 15000);
 
 
-// 5. MODAL (Sharp, White, Black Text)
-window.openLiveSection = async function() {
-    const modal = document.getElementById('live-modal');
-    const content = document.getElementById('live-modal-content');
-    const indicator = document.getElementById("refresh-indicator");
-    modal.style.display = 'flex';
-    // RESET STYLES FOR MODAL (Remove Glass)
-    modal.style.background = "#fff";
-    modal.style.border = "4px solid #000";
-    modal.style.borderRadius = "0";
-    modal.style.backdropFilter = "none";
-    
-    // Close button
-    document.querySelector('.live-modal-close').style.color = "#000";
-    document.querySelector('.live-modal-title').style.color = "#000";
+    // 5. MODAL (Sharp, White, Black Text)
+    window.openLiveSection = async function () {
+        const modal = document.getElementById('live-modal');
+        const content = document.getElementById('live-modal-content');
+        const indicator = document.getElementById("refresh-indicator");
+        modal.style.display = 'flex';
+        // RESET STYLES FOR MODAL (Remove Glass)
+        modal.style.background = "#fff";
+        modal.style.border = "4px solid #000";
+        modal.style.borderRadius = "0";
+        modal.style.backdropFilter = "none";
 
-    content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">⚡ FETCHING LIVE UPDATES...</div>';
-    try {
-        indicator.innerText = "Refreshing...";
-        await fetch(API_BASE + '/refresh_opml', { method: 'POST' });
-        await new Promise(r => setTimeout(r, 2000));
-        const res = await fetch(API_BASE + '/data');
-        const data = await res.json();
-        
-        const all = [...(data.opml||[]), ...(data.gnews||[]), ...(data.hackernews||[])];
-        const fresh = all.filter(i => i.created_utc && (Date.now() - new Date(i.created_utc).getTime() < 86400000));
-        fresh.sort((a,b) => new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime());
-        const top5 = fresh.slice(0, 5);
-        if (top5.length > 0) {
-            content.innerHTML = top5.map(item => `
+        // Close button
+        document.querySelector('.live-modal-close').style.color = "#000";
+        document.querySelector('.live-modal-title').style.color = "#000";
+
+        content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">⚡ FETCHING LIVE UPDATES...</div>';
+        try {
+            indicator.innerText = "Refreshing...";
+            await fetch(API_BASE + '/refresh_opml', { method: 'POST' });
+            await new Promise(r => setTimeout(r, 2000));
+            const res = await fetch(API_BASE + '/data');
+            const data = await res.json();
+
+            const all = [...(data.opml || []), ...(data.gnews || []), ...(data.hackernews || [])];
+            const fresh = all.filter(i => i.created_utc && (Date.now() - new Date(i.created_utc).getTime() < 86400000));
+            fresh.sort((a, b) => new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime());
+            const top5 = fresh.slice(0, 5);
+            if (top5.length > 0) {
+                content.innerHTML = top5.map(item => `
                 <div class="live-item" onclick="window.open('${item.url}', '_blank')" style="background:#fff; border-bottom:1px solid #000; padding:15px; border-radius:0;">
                    <div class="live-item-top">
-                        <span style="color:#FF0055; font-weight:bold; font-family:'Outfit'; text-transform:uppercase;">${(item.source||'').split('_')[0]}</span>
+                        <span style="color:#FF0055; font-weight:bold; font-family:'Outfit'; text-transform:uppercase;">${(item.source || '').split('_')[0]}</span>
                         <span style="color:#000; font-weight:bold;">${calculateTimeAgo(item.created_utc)}</span>
                     </div>
                     <h4 style="color:#000; font-size:1.2rem; font-family:'Outfit'; font-weight:800; text-transform:uppercase;">${stripHtml(item.text)}</h4>
                 </div>
             `).join('');
-            content.innerHTML += `<button onclick="applyLiveToFeed()" style="margin-top:16px; width:100%; padding:16px; background:#000; color:#fff; border:none; border-radius:0; font-weight:900; font-family:'Outfit'; text-transform:uppercase; font-size:1.2rem; cursor:pointer;">SHOW UPDATES</button>`;
-            window.latestFreshItems = fresh; 
-        } else { content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">NO NEW UPDATES.</div>'; }
-        indicator.innerText = "Live";
-    } catch (e) { indicator.innerText = "Error"; }
-};
+                content.innerHTML += `<button onclick="applyLiveToFeed()" style="margin-top:16px; width:100%; padding:16px; background:#000; color:#fff; border:none; border-radius:0; font-weight:900; font-family:'Outfit'; text-transform:uppercase; font-size:1.2rem; cursor:pointer;">SHOW UPDATES</button>`;
+                window.latestFreshItems = fresh;
+            } else { content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">NO NEW UPDATES.</div>'; }
+            indicator.innerText = "Live";
+        } catch (e) { indicator.innerText = "Error"; }
+    };
 
-window.fetchWorldUpdates();
+    window.fetchWorldUpdates();
 </script>
 
 
 
 <script>
-// === ANTIGRAVITY REAL-TIME POLLING V1 ===
+    // === ANTIGRAVITY REAL-TIME POLLING V1 ===
 
-window.livePollInterval = null;
+    window.livePollInterval = null;
 
-window.closeLiveModal = function() {
-    const modal = document.getElementById('live-modal');
-    if (modal) modal.style.display = 'none';
-    if (window.livePollInterval) {
-        clearInterval(window.livePollInterval);
-        window.livePollInterval = null;
-        console.log("🛑 Live Polling Stopped.");
-    }
-};
+    window.closeLiveModal = function () {
+        const modal = document.getElementById('live-modal');
+        if (modal) modal.style.display = 'none';
+        if (window.livePollInterval) {
+            clearInterval(window.livePollInterval);
+            window.livePollInterval = null;
+            console.log("🛑 Live Polling Stopped.");
+        }
+    };
 
-window.applyLiveToFeed = function() {
-    if (window.latestFreshItems && window.latestFreshItems.length > 0) {
-        // Apply directly to main feed
-        window.renderMainFeed(window.latestFreshItems);
-        window.scrollTo({top: 0, behavior: 'smooth'});
-        window.closeLiveModal();
-    }
-};
+    window.applyLiveToFeed = function () {
+        if (window.latestFreshItems && window.latestFreshItems.length > 0) {
+            // Apply directly to main feed
+            window.renderMainFeed(window.latestFreshItems);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.closeLiveModal();
+        }
+    };
 
-window.updateLiveModalContent = async function() {
-    const content = document.getElementById('live-modal-content');
-    if (!content) return;
-    
-    try {
-        // Fetch fresh data (Burst mode is running in background)
-        const res = await fetch(API_BASE + '/data');
-        const data = await res.json();
-        
-        const all = [...(data.opml||[]), ...(data.gnews||[]), ...(data.hackernews||[])];
-        // Strict real-time filter (Only last 24h)
-        const fresh = all.filter(i => i.created_utc && (Date.now() - new Date(i.created_utc).getTime() < 86400000));
-        fresh.sort((a,b) => new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime());
-        
-        // Store for "Show Updates"
-        window.latestFreshItems = fresh; 
-        
-        const top10 = fresh.slice(0, 10); // Show more items in modal
-        
-        if (top10.length > 0) {
-            content.innerHTML = top10.map(item => `
+    window.updateLiveModalContent = async function () {
+        const content = document.getElementById('live-modal-content');
+        if (!content) return;
+
+        try {
+            // Fetch fresh data (Burst mode is running in background)
+            const res = await fetch(API_BASE + '/data');
+            const data = await res.json();
+
+            const all = [...(data.opml || []), ...(data.gnews || []), ...(data.hackernews || [])];
+            // Strict real-time filter (Only last 24h)
+            const fresh = all.filter(i => i.created_utc && (Date.now() - new Date(i.created_utc).getTime() < 86400000));
+            fresh.sort((a, b) => new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime());
+
+            // Store for "Show Updates"
+            window.latestFreshItems = fresh;
+
+            const top10 = fresh.slice(0, 10); // Show more items in modal
+
+            if (top10.length > 0) {
+                content.innerHTML = top10.map(item => `
                 <div class="live-item" onclick="window.open('${item.url}', '_blank')" style="background:#fff; border-bottom:1px solid #000; padding:15px; border-radius:0; animation: fadeIn 0.5s;">
                    <div class="live-item-top">
-                        <span style="color:#FF0055; font-weight:bold; font-family:'Outfit'; text-transform:uppercase;">${(item.source||'').split('_')[0]}</span>
+                        <span style="color:#FF0055; font-weight:bold; font-family:'Outfit'; text-transform:uppercase;">${(item.source || '').split('_')[0]}</span>
                         <span style="color:#000; font-weight:bold;">${calculateTimeAgo(item.created_utc)}</span>
                     </div>
                     <h4 style="color:#000; font-size:1.1rem; font-family:'Outfit'; font-weight:800; text-transform:uppercase;">${stripHtml(item.text)}</h4>
                 </div>
             `).join('');
-            
-            content.innerHTML += `
+
+                content.innerHTML += `
                 <button onclick="applyLiveToFeed()" style="margin-top:16px; width:100%; padding:16px; background:#000; color:#fff; border:none; border-radius:0; font-weight:900; font-family:'Outfit'; text-transform:uppercase; font-size:1.2rem; cursor:pointer;">
                     SHOW ${fresh.length} UPDATES
                 </button>
             `;
-        } else {
-             content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">SCANNING STREAMS...</div>';
-        }
-    } catch(e) { console.error("Poll Error", e); }
-};
+            } else {
+                content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">SCANNING STREAMS...</div>';
+            }
+        } catch (e) { console.error("Poll Error", e); }
+    };
 
-window.openLiveSection = async function() {
-    const modal = document.getElementById('live-modal');
-    const content = document.getElementById('live-modal-content');
-    
-    // Style reset (High Contrast)
-    modal.style.display = 'flex';
-    modal.style.background = "#fff";
-    modal.style.border = "4px solid #000";
-    modal.style.borderRadius = "0";
-    modal.style.backdropFilter = "none";
-    document.querySelector('.live-modal-close').style.color = "#000";
-    document.querySelector('.live-modal-title').style.color = "#000";
+    window.openLiveSection = async function () {
+        const modal = document.getElementById('live-modal');
+        const content = document.getElementById('live-modal-content');
 
-    content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">⚡ STARTING BURST REFRESH...</div>';
-    
-    // 1. Trigger Burst
-    try { await fetch(API_BASE + '/refresh_opml', { method: 'POST' }); } catch(e) {}
-    
-    // 2. Start Polling Loop (Every 1.5s)
-    if (window.livePollInterval) clearInterval(window.livePollInterval);
-    
-    console.log("⚡ Live Polling Started.");
-    window.updateLiveModalContent(); // Immediate call
-    window.livePollInterval = setInterval(window.updateLiveModalContent, 1500);
-};
+        // Style reset (High Contrast)
+        modal.style.display = 'flex';
+        modal.style.background = "#fff";
+        modal.style.border = "4px solid #000";
+        modal.style.borderRadius = "0";
+        modal.style.backdropFilter = "none";
+        document.querySelector('.live-modal-close').style.color = "#000";
+        document.querySelector('.live-modal-title').style.color = "#000";
 
-// CSS Animation for new items
-const style = document.createElement('style');
-style.innerHTML = `
+        content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">⚡ STARTING BURST REFRESH...</div>';
+
+        // 1. Trigger Burst
+        try { await fetch(API_BASE + '/refresh_opml', { method: 'POST' }); } catch (e) { }
+
+        // 2. Start Polling Loop (Every 1.5s)
+        if (window.livePollInterval) clearInterval(window.livePollInterval);
+
+        console.log("⚡ Live Polling Started.");
+        window.updateLiveModalContent(); // Immediate call
+        window.livePollInterval = setInterval(window.updateLiveModalContent, 1500);
+    };
+
+    // CSS Animation for new items
+    const style = document.createElement('style');
+    style.innerHTML = `
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
 
 </script>
 
 <script>
-// === ANTIGRAVITY FIX: ROBUST DATE PARSING ===
+    // === ANTIGRAVITY FIX: ROBUST DATE PARSING ===
 
-window.calculateTimeAgo = function(dateString) {
-    if (!dateString) return 'Unknown Date';
-    
-    const now = new Date();
-    const date = new Date(dateString);
-    
-    // DEBUG: Log what we're parsing
-    // console.log(`Parsing date: ${dateString} -> ${date.toString()}`);
-    
-    // If date is invalid, return the raw string
-    if (isNaN(date.getTime())) {
-        console.warn(`Invalid date: ${dateString}`);
-        return dateString.substring(0, 20); // Show first 20 chars
-    }
-    
-    const diffMs = now - date;
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHour = Math.floor(diffMin / 60);
-    const diffDay = Math.floor(diffHour / 24);
-    
-    // FUTURE DATE? (Clock skew or bad data) - Show the actual date
-    if (diffMs < -3600000) { // More than 1 hour in future
-        const options = { month: 'short', day: 'numeric', year: 'numeric' };
-        return date.toLocaleDateString('en-US', options);
-    }
-    
-    // Very recent (treat small negative values as "now")
-    if (diffMs < 0) return 'Just now';
-    
-    // < 1 Minute
-    if (diffSec < 60) return 'Just now';
-    
-    // < 1 Hour
-    if (diffMin < 60) return diffMin + 'm ago';
-    
-    // < 24 Hours
-    if (diffHour < 24) return diffHour + 'h ago';
-    
-    // < 7 Days
-    if (diffDay < 7) return diffDay + 'd ago';
-    
-    // Older: Show actual date
-    const options = { month: 'short', day: 'numeric' };
-    if (diffDay > 365) options.year = 'numeric';
-    return date.toLocaleDateString('en-US', options);
-};
+    window.calculateTimeAgo = function (dateString) {
+        if (!dateString) return 'Unknown Date';
 
-console.log("✅ Fixed Date Parsing Logic Applied.");
-</script>
+        const now = new Date();
+        const date = new Date(dateString);
 
-<script>
-// === ANTIGRAVITY REFRESH LOGIC V2 ===
-// Enforcing strict 20s Pulse and Unified Feed Refresh
+        // DEBUG: Log what we're parsing
+        // console.log(`Parsing date: ${dateString} -> ${date.toString()}`);
 
-// 1. GLOBAL PULSE (20s Strict)
-if (window.worldInterval) clearInterval(window.worldInterval);
-window.worldInterval = setInterval(() => {
-    console.log("🌍 Updating Global Pulse (20s)...");
-    window.fetchWorldUpdates(); 
-}, 20000);
-
-// 2. MAIN FEED AUTO-REFRESH (15s)
-if (window.feedInterval) clearInterval(window.feedInterval);
-window.feedInterval = setInterval(() => {
-    if (typeof window.loadCategoryData === 'function' && window.currentCategory) {
-        console.log("⚡ Auto-refreshing Main Feed...");
-        window.loadCategoryData(window.currentCategory); 
-    }
-}, 15000);
-
-// 3. ENHANCED FETCH LIVE (Burst + Main Feed Reload)
-const originalOpenLive = window.openLiveSection;
-window.openLiveSection = async function() {
-    // A. Call the original modal logic (Burst + Polling)
-    if (originalOpenLive) originalOpenLive();
-
-    const indicator = document.getElementById("refresh-indicator");
-    if (indicator) indicator.innerText = "Refreshing...";
-
-    // B. Wait 2 seconds for Burst Mode to ingest new OPML data
-    setTimeout(async () => {
-        console.log("🔥 Fetch Live: Triggering Main Feed Update...");
-        
-        // C. Force reload of the main feed with the new data
-        if (window.currentCategory) {
-            await window.loadCategoryData(window.currentCategory);
+        // If date is invalid, return the raw string
+        if (isNaN(date.getTime())) {
+            console.warn(`Invalid date: ${dateString}`);
+            return dateString.substring(0, 20); // Show first 20 chars
         }
-        
-        // D. Also refresh Global Pulse
-        await window.fetchWorldUpdates();
-        
-        if (indicator) indicator.innerText = "Live";
-        
-        // E. Notify User
-        const toast = document.createElement("div");
-        toast.className = "toast-notification";
-        toast.innerText = "🚀 FEEDS REFRESHED WITH LIVE DATA";
-        toast.style.cssText = "position:fixed; bottom:20px; right:20px; background:#00FF00; color:#000; padding:15px; font-weight:900; z-index:9999;";
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
-        
-    }, 2500); // 2.5s delay to allow Burst Mode to yield items
-};
 
-console.log("✅ Unified Refresh Logic Applied (Pulse: 20s, Live: Burst+Reload)");
+        const diffMs = now - date;
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHour = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHour / 24);
+
+        // FUTURE DATE? (Clock skew or bad data) - Show the actual date
+        if (diffMs < -3600000) { // More than 1 hour in future
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        // Very recent (treat small negative values as "now")
+        if (diffMs < 0) return 'Just now';
+
+        // < 1 Minute
+        if (diffSec < 60) return 'Just now';
+
+        // < 1 Hour
+        if (diffMin < 60) return diffMin + 'm ago';
+
+        // < 24 Hours
+        if (diffHour < 24) return diffHour + 'h ago';
+
+        // < 7 Days
+        if (diffDay < 7) return diffDay + 'd ago';
+
+        // Older: Show actual date
+        const options = { month: 'short', day: 'numeric' };
+        if (diffDay > 365) options.year = 'numeric';
+        return date.toLocaleDateString('en-US', options);
+    };
+
+    console.log("✅ Fixed Date Parsing Logic Applied.");
 </script>
 
 <script>
-// === ULTRA-STRICT FRESHNESS FILTER ===
-// Override renderMainFeed to ONLY show items < 1 hour old
+    // === ANTIGRAVITY REFRESH LOGIC V2 ===
+    // Enforcing strict 20s Pulse and Unified Feed Refresh
 
-const originalRenderMainFeed = window.renderMainFeed;
-window.renderMainFeed = function(items) {
-    const ONE_HOUR_MS = 60 * 60 * 1000;
-    const now = Date.now();
-    
-    // Filter to only items published in the last hour
-    const ultraFresh = items.filter(item => {
-        if (!item.created_utc) return false;
-        const itemTime = new Date(item.created_utc).getTime();
-        if (isNaN(itemTime)) return false;
-        const age = now - itemTime;
-        return age >= 0 && age < ONE_HOUR_MS;
-    });
-    
-    console.log(`🔥 ULTRA-STRICT FILTER: ${items.length} items -> ${ultraFresh.length} items (< 1h old)`);
-    
-    if (ultraFresh.length === 0) {
-        console.warn("⚠️ No items found within the last hour. Showing items within 6 hours instead.");
-        const SIX_HOUR_MS = 6 * 60 * 60 * 1000;
-        const lessFresh = items.filter(item => {
-            if (!item.created_utc) return false;
-            const itemTime = new Date(item.created_utc).getTime();
-            if (isNaN(itemTime)) return false;
-            const age = now - itemTime;
-            return age >= 0 && age < SIX_HOUR_MS;
-        });
-        return originalRenderMainFeed ? originalRenderMainFeed(lessFresh) : null;
-    }
-    
-    return originalRenderMainFeed ? originalRenderMainFeed(ultraFresh) : null;
-};
+    // 1. GLOBAL PULSE (20s Strict)
+    if (window.worldInterval) clearInterval(window.worldInterval);
+    window.worldInterval = setInterval(() => {
+        console.log("🌍 Updating Global Pulse (20s)...");
+        window.fetchWorldUpdates();
+    }, 20000);
 
-console.log("✅ Ultra-Strict 1-Hour Freshness Filter Applied");
+    // 2. MAIN FEED AUTO-REFRESH (15s)
+    if (window.feedInterval) clearInterval(window.feedInterval);
+    window.feedInterval = setInterval(() => {
+        if (typeof window.loadCategoryData === 'function' && window.currentCategory) {
+            console.log("⚡ Auto-refreshing Main Feed...");
+            window.loadCategoryData(window.currentCategory);
+        }
+    }, 15000);
+
+    // 3. ENHANCED FETCH LIVE (Burst + Main Feed Reload)
+    const originalOpenLive = window.openLiveSection;
+    window.openLiveSection = async function () {
+        // A. Call the original modal logic (Burst + Polling)
+        if (originalOpenLive) originalOpenLive();
+
+        const indicator = document.getElementById("refresh-indicator");
+        if (indicator) indicator.innerText = "Refreshing...";
+
+        // B. Wait 2 seconds for Burst Mode to ingest new OPML data
+        setTimeout(async () => {
+            console.log("🔥 Fetch Live: Triggering Main Feed Update...");
+
+            // C. Force reload of the main feed with the new data
+            if (window.currentCategory) {
+                await window.loadCategoryData(window.currentCategory);
+            }
+
+            // D. Also refresh Global Pulse
+            await window.fetchWorldUpdates();
+
+            if (indicator) indicator.innerText = "Live";
+
+            // E. Notify User
+            const toast = document.createElement("div");
+            toast.className = "toast-notification";
+            toast.innerText = "🚀 FEEDS REFRESHED WITH LIVE DATA";
+            toast.style.cssText = "position:fixed; bottom:20px; right:20px; background:#00FF00; color:#000; padding:15px; font-weight:900; z-index:9999;";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+
+        }, 2500); // 2.5s delay to allow Burst Mode to yield items
+    };
+
+    console.log("✅ Unified Refresh Logic Applied (Pulse: 20s, Live: Burst+Reload)");
+</script>
+
+<script>
+    // === ULTRA-STRICT FRESHNESS FILTER DISABLED ===
+    // This was blocking ALL content because RSS has 15-60min inherent lag
+    // Backend filtering is enough
+
+    // const originalRenderMainFeed = window.renderMainFeed;
+    // window.renderMainFeed = function(items) {
+    //     const ONE_HOUR_MS = 60 * 60 * 1000;
+    //     const now = Date.now();
+    //     const ultraFresh = items.filter(item => {
+    //         if (!item.created_utc) return false;
+    //         const itemTime = new Date(item.created_utc).getTime();
+    //         if (isNaN(itemTime)) return false;
+    //         const age = now - itemTime;
+    //         return age >= 0 && age < ONE_HOUR_MS;
+    //     });
+    //     console.log(`🔥 FILTER: ${items.length} items -> ${ultraFresh.length} items`);
+    //     if (ultraFresh.length === 0) {
+    //         const SIX_HOUR_MS = 6 * 60 * 60 * 1000;
+    //         const lessFresh = items.filter(item => {
+    //             if (!item.created_utc) return false;
+    //             const itemTime = new Date(item.created_utc).getTime();
+    //             if (isNaN(itemTime)) return false;
+    //             const age = now - itemTime;
+    //             return age >= 0 && age < SIX_HOUR_MS;
+    //         });
+    //         return originalRenderMainFeed ? originalRenderMainFeed(lessFresh) : null;
+    //     }
+    //     return originalRenderMainFeed ? originalRenderMainFeed(ultraFresh) : null;
+    // };
+
+    console.log("✅ Frontend filter DISABLED - showing all backend data");
 </script>
