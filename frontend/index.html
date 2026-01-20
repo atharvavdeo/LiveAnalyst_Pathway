@@ -1535,11 +1535,11 @@
 
                 // Combine: Fresh OPML FIRST (10), then GNews, then NewsData, then HackerNews, then more OPML
                 const organizedItems = [
-                    ...freshOpml.slice(0, 10),   // FIRST 10 are FRESH OPML feeds
-                    ...gnewsItems.slice(0, 5),   // Then GNews
-                    ...newsapiItems.slice(0, 5), // NewsData items
-                    ...hnItems.slice(0, 3),      // HackerNews
-                    ...otherItems.slice(0, 2)
+                    ...freshOpml,   // FIRST 10 are FRESH OPML feeds
+                    ...gnewsItems,   // Then GNews
+                    ...newsapiItems, // NewsData items
+                    ...hnItems,      // HackerNews
+                    ...otherItems
                 ];
 
                 console.log(`Topic ${category}: FreshOPML=${freshOpml.length}, GNews=${gnewsItems.length}, NewsData=${newsapiItems.length}, HN=${hnItems.length}`);
