@@ -137,8 +137,8 @@ class OPMLIngestor:
                                 continue
                             
                             
-                            # === STRICT 2-HOUR FRESHNESS FILTER ===
-                            # Only yield articles published in last 2 hours
+                            # === STRICT 6-HOUR FRESHNESS FILTER ===
+                            # Only yield articles published in last 6 hours (RSS has 15-60min lag)
                             try:
                                 from datetime import datetime, timezone
                                 if 'T' in pub_date:
@@ -149,8 +149,8 @@ class OPMLIngestor:
                                 
                                 age_hours = (datetime.now(timezone.utc) - article_time).total_seconds() / 3600
                                 
-                                # STRICT: Skip articles older than 2 hours
-                                if age_hours > 2:
+                                # STRICT: Skip articles older than 6 hours
+                                if age_hours > 6:
                                     continue
                                     
                                 # Skip future dates (bad data)
