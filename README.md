@@ -42,6 +42,9 @@ This application connects to a dynamic, continuously updating array of data sour
     *   It retrieves context that may have been created **seconds ago**.
     *   The LLM generates an answer based on what is happening *right now*, not what happened yesterday.
 
+---
+YouTube Link : https://youtu.be/e_ZY6mImhzM
+---
 
 ## 📸 App Previews
 <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
