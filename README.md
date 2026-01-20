@@ -43,53 +43,6 @@ This application connects to a dynamic, continuously updating array of data sour
     *   The LLM generates an answer based on what is happening *right now*, not what happened yesterday.
 
 
-## Pathway Features in this App
-*   **Stateless and stateful transformations**: Pathway supports stateful transformations such as joins, windowing, and sorting.
-*   **Consistency**: Pathway handles the time for you, making sure all your computations are consistent. In particular, Pathway manages late and out-of-order points.
-*   **Scalable Rust engine**: With Pathway Rust engine, you are free from the usual limits imposed by Python.
-
-
-### Architecture Diagram
-```mermaid
-graph LR
-    User[User Frontend]
-    API[FastAPI Backend]
-
-    subgraph Inputs ["Data Ingestion Streams"]
-        direction TB
-        OPML["34 OPML Categories<br/>1000+ RSS Feeds"]
-        GNews[GNews API]
-        NewsData[NewsData.io]
-        Social[HackerNews]
-    end
-
-    subgraph Core ["Pathway ETL Engine"]
-        direction TB
-        Stream[Stream Connectors]
-        Dedup[Deduplication]
-        DB[(SQLite Archive)]
-    end
-
-    subgraph AI ["RAG Pipeline"]
-        direction TB
-        Retrieval[Vector Search]
-        LLM["Gemini 1.5 Flash<br/>Groq Fallback"]
-    end
-
-    Inputs --> Stream
-    Stream --> Dedup
-    Dedup --> DB
-    User --> API
-    API --> Core
-    Core --> AI
-    AI --> API
-    API --> User
-```
-
-## High-Throughput OPML Architecture
-
-This subsystem ensures that the platform has access to a massive, uncensored stream of global information by processing **thousands of global RSS feeds** in real-time.
-
 ## 📸 App Previews
 <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
     <img src="preview_landing.png" width="30%" alt="Live Dashboard" style="border-radius:8px; border:1px solid #333;" />
@@ -99,7 +52,7 @@ This subsystem ensures that the platform has access to a massive, uncensored str
 
 ## 🛠️ Integrated Pathway Technologies
 
-This project utilizes specific **Pathway APIs** to achieve millisecond-latency streaming.
+This project strictly adheres to the **Pathway Live Data Framework**, utilizing specific APIs to achieve millisecond-latency streaming.
 
 ### 1. Unified Data Ingestion (`pw.io`)
 We don't use batch scraping. We use **Pathway Connectors** to turn APIs into streaming tables:
@@ -107,14 +60,13 @@ We don't use batch scraping. We use **Pathway Connectors** to turn APIs into str
 *   **API Streams**: Twitter/X and NewsData.io are ingested via custom connectors extending Pathway's input schema.
 
 ### 2. Live Transformations (`pw.temporal` & `pw.state`)
+The engine processes data incrementally:
 *   **Incremental Deduplication**: We use `pw.io.deduplicate(pathway.table)` to merge identical stories (by title/content similarity) arriving from different feeds in real-time.
 *   **Sliding Window Aggregation**: `pw.temporal.sliding` is used to group news items by 5-minute windows to detect sudden "virality spikes" across multiple sources.
 
 ### 3. Real-Time RAG (`pw.xpacks.llm`)
 *   **Vector Indexing**: Incoming text is embedded using `pw.xpacks.llm.embedders` (Gemini/HuggingFace) and indexed in a live KNN index.
-*   **Context Retrieval**: queries are executed against this live index using `pw.xpacks.llm.retrievers`, ensuring the context includes data from *milliseconds ago*.
-
----
+*   **Context Retrieval**: Queries are executed against this live index using `pw.xpacks.llm.retrievers`, ensuring the context includes data from *milliseconds ago*.
 
 ### Architecture Diagram
 ```mermaid
