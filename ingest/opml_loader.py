@@ -102,8 +102,8 @@ class OPMLIngestor:
                     print("⚡ OPML: Restarting feed cycle immediately...")
                     break
 
-                # BURST MODE: If active, sleep is 0. Else use standard 0.05s
-                sleep_time = 0.0 if self.burst_mode else 0.05
+                # MAXIMUM SPEED: Always 0s sleep for real-time updates
+                sleep_time = 0.0
 
                 try:
                     # Parse the individual RSS feed with timeout
