@@ -43,6 +43,7 @@ graph LR
         direction TB
         OPML["34 OPML Categories<br/>1000+ RSS Feeds"]
         GNews[GNews API]
+        NewsData[NewsData.io]
         Social[HackerNews]
     end
 
@@ -67,32 +68,6 @@ graph LR
     Core --> AI
     AI --> API
     API --> User
-```
-        Buffer[(Live Stream Buffer)]
-        Burst[Burst Mode Controller]
-    end
-
-    subgraph Brain ["AI & Analysis"]
-        direction TB
-        RAG[RAG Pipeline]
-        LLM[Gemini / Groq]
-    end
-
-    %% Data Flow
-    Firehose & OPML & GNews & Social --> Buffer
-    Buffer --> RAG
-
-    %% App Flow
-    User -->|Query| RAG
-    RAG -->|Context| LLM
-    LLM -->|Summary| API
-    API -->|Response| User
-
-    %% Control Flow
-    User -.->|Fetch Live| API
-    API -.->|Trigger Burst Mode| Burst
-    Burst -->|Instant Refresh| Firehose
-    Burst -->|Instant Refresh| OPML
 ```
 
 ## High-Throughput OPML Architecture
