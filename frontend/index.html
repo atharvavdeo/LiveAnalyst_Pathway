@@ -889,6 +889,35 @@
             font-weight: 700;
         }
     </style>
+
+<style>
+/* ANTIGRAVITY AESTHETIC PATCH */
+.live-modal { position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:600px; max-width:90%; background:rgba(20, 20, 20, 0.95); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); z-index:10000; backdrop-filter:blur(10px); display:none; flex-direction:column; gap:16px; }
+.live-modal-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px; }
+.live-modal-title { font-size:1.4rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px; }
+.live-modal-close { background:none; border:none; color:#888; cursor:pointer; font-size:1.5rem; }
+.live-modal-list { display:flex; flex-direction:column; gap:12px; max-height:60vh; overflow-y:auto; }
+.live-item { background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; cursor:pointer; transition:all 0.2s; border:1px solid transparent; }
+.live-item:hover { background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.1); }
+.live-item-top { display:flex; justify-content:space-between; font-size:0.75rem; color:#888; margin-bottom:6px; }
+.live-item-source { font-weight:600; color:#aaa; text-transform:uppercase; letter-spacing:0.5px; }
+.live-item-time { color:#666; }
+.live-item h4 { margin:0; font-size:1rem; color:#eee; font-weight:500; line-height:1.4; }
+.toast-notification { position:fixed; bottom:30px; right:30px; background:#111; border:1px solid #333; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; box-shadow:0 10px 15px -3px rgba(0,0,0,0.5); display:flex; align-items:center; gap:10px; font-size:0.9rem; animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+</style>
+<!-- LIVE MODAL CONTAINER -->
+<div id="live-modal" class="live-modal">
+    <div class="live-modal-header">
+        <div class="live-modal-title">⚡ Live Updates</div>
+        <button class="live-modal-close" onclick="closeLiveModal()">×</button>
+    </div>
+    <div id="live-modal-content" class="live-modal-list"></div>
+</div>
+
+
+
+
 </head>
 
 <body>
@@ -1213,15 +1242,14 @@
             // Load Data (Cache First -> Then Network)
             loadCategoryData(category);
 
-            // Start polling for side column
+            // Start polling for side column ONLY (not main feed)
             fetchWorldUpdates();
-            setInterval(fetchWorldUpdates, 20000); // 20 sec poll for live Global Pulse
+            setInterval(fetchWorldUpdates, 20000); // 20 sec poll for live Global Pulse ONLY
 
             // Load Fun Stream after 3000ms
             setTimeout(loadFunStream, 3000);
 
-            // Auto-refresh main feed every 30s to pull in new live data
-            setInterval(() => loadCategoryData(currentCategory), 20000); // 20 sec poll for live OPML updates
+            // REMOVED: Main feed auto-refresh - only updates when user changes topic
         }
 
         async function loadFunStream() {
@@ -1272,26 +1300,30 @@
 
             // B. Fetch Fresh from Backend (Parallel: NewsAPI + Live Stream)
             try {
-                const [newsRes, liveRes] = await Promise.all([
-                    fetch(API_BASE + '/fetch_news', {
+                // Fetch live data first (OPML, GNews, HackerNews) - these always work
+                const liveRes = await fetch(API_BASE + '/data');
+                const liveData = await liveRes.json();
+
+                // Try NewsAPI (may fail due to rate limit)
+                let newsItems = [];
+                try {
+                    const newsRes = await fetch(API_BASE + '/fetch_news', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ category: category.toLowerCase() })
-                    }),
-                    fetch(API_BASE + '/data') // Live Data (OPML, Reddit, etc.)
-                ]);
+                    });
+                    const newsData = await newsRes.json();
+                    newsItems = newsData.items || [];
+                } catch (newsErr) {
+                    console.log("NewsAPI unavailable, using live streams only");
+                }
 
-                const newsData = await newsRes.json();
-                const liveData = await liveRes.json();
-
-                // 1. Process NewsAPI Items
-                let combinedItems = newsData.items || [];
-
-                // 2. Process Live Stream Items (Filter by Category)
+                // 2. Process Live Stream Items (ALL SOURCES)
                 const liveStreams = [
                     ...(liveData.opml || []),
-                    ...(liveData.reddit || []),
-                    ...(liveData.hackernews || []) // HN is usually Tech
+                    ...(liveData.gnews || []),  // Include GNews from live stream
+                    ...(liveData.hackernews || []),
+                    ...(liveData.reddit || [])
                 ];
 
                 const relevantLive = liveStreams.filter(item => {
@@ -1300,6 +1332,15 @@
                     // For "general" or "all" - show everything
                     if (targetCat === 'general' || targetCat === 'all' || targetCat === 'top') {
                         return true;
+                    }
+
+                    // GNews items - always relevant for matching categories
+                    if (item.source === 'gnews') {
+                        if (item.category) {
+                            const gnewsCat = item.category.toLowerCase();
+                            if (gnewsCat.includes(targetCat) || targetCat.includes(gnewsCat)) return true;
+                        }
+                        return true; // Show all GNews if no specific category match
                     }
 
                     // OPML items: More inclusive matching
@@ -1342,7 +1383,8 @@
                     return false;
                 });
 
-                combinedItems = [...combinedItems, ...relevantLive];
+                // COMBINE: Live streams FIRST (they're always available), then NewsAPI
+                let combinedItems = [...relevantLive, ...newsItems];
 
                 // 3. Deduplicate (by URL)
                 const seen = new Set();
@@ -1354,33 +1396,51 @@
                     }
                 }
 
-                // 4. ORGANIZE: GNews/NewsAPI first (5), then OPML with "Latest" tag
-                const gnewsItems = uniqueItems.filter(i => i.source === 'gnews' || i.source === 'newsapi' || i.source === 'newsapi_search');
+                // 4. ORGANIZE: GNews first, then OPML, then HackerNews, then NewsAPI
+                const gnewsItems = uniqueItems.filter(i => i.source === 'gnews');
                 const opmlItems = uniqueItems.filter(i => i.source === 'opml');
-                const otherItems = uniqueItems.filter(i => !['gnews', 'newsapi', 'newsapi_search', 'opml'].includes(i.source));
+                const hnItems = uniqueItems.filter(i => i.source === 'hackernews');
+                const newsapiItems = uniqueItems.filter(i => i.source === 'newsapi' || i.source === 'newsapi_search');
+                const otherItems = uniqueItems.filter(i => !['gnews', 'newsapi', 'newsapi_search', 'opml', 'hackernews'].includes(i.source));
 
                 // Sort each group by date
                 const sortByDate = (a, b) => new Date(b.created_utc || 0) - new Date(a.created_utc || 0);
                 gnewsItems.sort(sortByDate);
                 opmlItems.sort(sortByDate);
+                hnItems.sort(sortByDate);
+                newsapiItems.sort(sortByDate);
                 otherItems.sort(sortByDate);
 
-                // Tag OPML items with "isLive" marker for UI
-                opmlItems.forEach(item => { item.isLive = true; });
+                // === FRESHNESS FILTER: Only show OPML items less than 24 hours old ===
+                const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+                const now = Date.now();
+                const freshOpml = opmlItems.filter(item => {
+                    if (!item.created_utc) return false; // Skip items without date
+                    const itemTime = new Date(item.created_utc).getTime();
+                    return (now - itemTime) < TWENTY_FOUR_HOURS;
+                });
+                console.log(`Fresh OPML (< 24h): ${freshOpml.length} / ${opmlItems.length} total`);
 
-                // Combine: First 5 GNews/NewsAPI, then all OPML, then others
+                // Tag fresh OPML items with "isLive" marker for UI
+                freshOpml.forEach(item => { item.isLive = true; });
+
+                // Combine: Fresh OPML FIRST (10), then GNews, then NewsData, then HackerNews, then more OPML
                 const organizedItems = [
-                    ...gnewsItems.slice(0, 5),
-                    ...opmlItems.slice(0, 15),  // Up to 15 OPML items
-                    ...otherItems.slice(0, 5)
+                    ...freshOpml.slice(0, 10),   // FIRST 10 are FRESH OPML feeds
+                    ...gnewsItems.slice(0, 5),   // Then GNews
+                    ...newsapiItems.slice(0, 5), // NewsData items
+                    ...hnItems.slice(0, 3),      // HackerNews
+                    ...otherItems.slice(0, 2)
                 ];
+
+                console.log(`Topic ${category}: FreshOPML=${freshOpml.length}, GNews=${gnewsItems.length}, NewsData=${newsapiItems.length}, HN=${hnItems.length}`);
 
                 if (organizedItems.length > 0) {
                     renderMainFeed(organizedItems);
                     localStorage.setItem(storageKey, JSON.stringify(organizedItems));
                     document.getElementById("refresh-indicator").innerText = "Live";
                 } else if (!cached) {
-                    listContainer.innerHTML = `<p style="text-align:center; padding:40px;">No recent news found for ${category}.</p>`;
+                    listContainer.innerHTML = `<p style="text-align:center; padding:40px;">No recent news found for ${category}. Click "Live" button to refresh.</p>`;
                 }
 
             } catch (err) {
@@ -1405,21 +1465,35 @@
 
             if (!items || items.length === 0) return;
 
-            // 1. Render Hero (First Item)
+            // 1. Render Hero (First Item) - use gradient background instead of static image
             const heroItem = items[0];
-            const heroImage = heroItem.image_url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80';
+            // Generate dynamic gradient based on source to avoid static placeholder
+            const gradientColors = {
+                'opml': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'gnews': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                'newsdata': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                'newsdata_ondemand': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                'hackernews': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                'default': 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
+            };
+            const heroGradient = gradientColors[heroItem.source] || gradientColors['default'];
+            // Use actual image if available, otherwise use gradient
+            const heroHasImage = heroItem.image_url && heroItem.image_url.startsWith('http');
             const heroIsSaved = isBookmarked(heroItem.url);
             const heroText = stripHtml(heroItem.text);
 
             heroContainer.innerHTML = `
                 <div class="hero-article" style="position:relative;" onclick="window.open('${heroItem.url}', '_blank')">
-                    <button class="bookmark-icon-btn ${heroIsSaved ? 'saved' : ''}" style="top:20px; right:20px; width:48px; height:48px;" onclick="event.stopPropagation(); addBookmark(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(heroItem))}')))">
+                    <button class="bookmark-icon-btn ${heroIsSaved ? 'saved' : ''}" style="top:20px; right:20px; width:48px; height:48px;" onclick="event.stopPropagation(); addBookmark(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(heroItem))}')))"> 
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
                         </svg>
                     </button>
-                    <div class="hero-image-wrap">
-                        <img src="${heroImage}" alt="Hero Image">
+                    <div class="hero-image-wrap" style="${!heroHasImage ? 'background:' + heroGradient + '; display:flex; align-items:center; justify-content:center;' : ''}">
+                        ${heroHasImage ?
+                    `<img src="${heroItem.image_url}" alt="Hero Image" onerror="this.style.display='none'; this.parentElement.style.background='${heroGradient}';">` :
+                    `<span style="font-size:4rem; opacity:0.3;">📰</span>`
+                }
                     </div>
                     <div class="hero-content">
                         <h2>${heroText}</h2>
@@ -1433,7 +1507,6 @@
             // 2. Render List (Remaining Items)
             const listItems = items.slice(1);
             listContainer.innerHTML = listItems.map((item, idx) => {
-                const img = item.image_url || 'https://via.placeholder.com/200x130?text=No+Image';
                 const isSaved = isBookmarked(item.url);
 
                 // CLEAN headline: Remove summary after " - " for OPML items
@@ -1442,28 +1515,48 @@
                     itemText = itemText.split(' - ')[0];  // Keep only the headline part
                 }
 
-                const itemDesc = stripHtml(item.description || "Click to read full coverage...");
+                // Extract content snippet from text or description
+                let contentSnippet = stripHtml(item.description || item.text || "");
+                // Remove headline from snippet if it's duplicated
+                if (contentSnippet.startsWith(itemText)) {
+                    contentSnippet = contentSnippet.substring(itemText.length);
+                }
+                // Clean up snippet
+                contentSnippet = contentSnippet.replace(/^[\s\.\-]+/, '').trim();
+                if (contentSnippet.length > 150) {
+                    contentSnippet = contentSnippet.substring(0, 150) + '...';
+                }
+                if (!contentSnippet) contentSnippet = "Click to read the full article coverage...";
 
-                // Add "Latest" badge for OPML items
+                // Add "LATEST" badge for fresh OPML items
                 const latestBadge = item.isLive ?
                     `<span style="background:#ff4757; color:white; padding:3px 8px; border-radius:4px; font-size:0.7rem; font-weight:700; margin-right:8px;">🔴 LATEST</span>` : '';
 
+                // Source color coding
+                const sourceColors = {
+                    'opml': '#667eea',
+                    'gnews': '#f5576c',
+                    'newsdata': '#00f2fe',
+                    'newsdata_ondemand': '#38f9d7',
+                    'hackernews': '#fee140'
+                };
+                const sourceColor = sourceColors[item.source] || '#888';
+
                 return `
-                <div class="feed-item" style="position:relative;" onclick="window.open('${item.url}', '_blank')">
-                    <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" style="top:5px; right:5px;" onclick="event.stopPropagation(); addBookmark(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item))}')))">
+                <div class="feed-item" style="position:relative; grid-template-columns: 1fr; padding: 20px;" onclick="window.open('${item.url}', '_blank')">
+                    <button class="bookmark-icon-btn ${isSaved ? 'saved' : ''}" style="top:10px; right:10px;" onclick="event.stopPropagation(); addBookmark(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item))}')))">;
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
                         </svg>
                     </button>
-                    <div class="feed-thumb">
-                        <img src="${img}" alt="News Thumb">
-                    </div>
-                    <div class="feed-info">
-                        <h3>${itemText}</h3>
-                        <p>${itemDesc}</p>
-                        <div class="meta-line" style="margin-top:10px; font-size:0.75rem;">
-                             ${latestBadge}${calculateTimeAgo(item.created_utc)}
+                    <div class="feed-info" style="width:100%;">
+                        <div style="margin-bottom:8px;">
+                            ${latestBadge}
+                            <span style="background:${sourceColor}; color:white; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:600; text-transform:uppercase;">${item.source || 'Unknown'}</span>
+                            <span style="color:#888; font-size:0.8rem; margin-left:10px;">${calculateTimeAgo(item.created_utc)}</span>
                         </div>
+                        <h3 style="margin-bottom:8px;">${itemText}</h3>
+                        <p style="color:#555; font-size:0.95rem; line-height:1.5;">${contentSnippet}</p>
                     </div>
                 </div>
                 `;
@@ -1478,13 +1571,13 @@
                 // Combine sources for "Global Pulse" - OPML FIRST (freshest)
                 const allPulse = [...(data.opml || []), ...(data.gnews || []), ...(data.hackernews || [])];
 
-                // Freshness filter: only items < 3 hours old
-                const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+                // Freshness filter: only items < 24 hours old
+                const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
                 const now = Date.now();
                 const freshPulse = allPulse.filter(item => {
                     if (!item.created_utc) return true;
                     const itemTime = new Date(item.created_utc).getTime();
-                    return (now - itemTime) < THREE_HOURS_MS;
+                    return (now - itemTime) < TWENTY_FOUR_HOURS_MS;
                 });
 
                 // Sort by date (newest first)
@@ -1619,6 +1712,109 @@
         function closeLiveSection() {
             document.getElementById('live-overlay').style.display = 'none';
         }
+
+        // === ANTIGRAVITY PATCH: OVERRIDE FUNCTIONS ===
+
+        // Override loadCategoryData with Smart Filter version
+        window.loadCategoryData = async function (category) {
+            const listContainer = document.getElementById("list-feed");
+            const heroContainer = document.getElementById("hero-container");
+            const storageKey = `news_cache_${category}`;
+            const loader = `<p style="text-align:center; padding:40px; font-weight:700; color:#000;">🔍 Finding best ${category} stories...</p>`;
+
+            // A. Check Local Cache first (only if container is empty)
+            const cached = localStorage.getItem(storageKey);
+            if (cached && listContainer.innerHTML.trim() === "") {
+                const data = JSON.parse(cached);
+                renderMainFeed(data);
+            } else if (listContainer.innerHTML.trim() === "") {
+                listContainer.innerHTML = loader;
+            }
+
+            // B. Fetch Fresh from Backend (Using Smart Topic Filter)
+            try {
+                const isRefreshing = document.getElementById("refresh-indicator").innerText === "Refreshing...";
+
+                if (isRefreshing) {
+                    console.log("⚡ Triggering FORCE OPML REFRESH...");
+                    try { await fetch(API_BASE + '/refresh_opml', { method: 'POST' }); } catch (e) { console.error(e); }
+                }
+
+                console.log(`🎯 Fetching smart filtered data for: ${category}`);
+                const res = await fetch(API_BASE + '/filter_topic', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic: category.toLowerCase() })
+                });
+                const data = await res.json();
+
+                const opmlItems = data.opml || [];
+                const gnewsItems = data.gnews || [];
+                const newsapiItems = data.newsdata || [];
+                const hnItems = data.hackernews || [];
+                const dbItems = data.db_history || [];
+
+                opmlItems.forEach(item => { item.isLive = true; });
+
+                // Robust Date Parser for Sorting
+                const parseItemDate = (item) => {
+                    if (!item.created_utc) return 0;
+                    const d = new Date(item.created_utc);
+                    return isNaN(d.getTime()) ? 0 : d.getTime();
+                };
+
+                const sortByDate = (a, b) => parseItemDate(b) - parseItemDate(a);
+
+                // Combine and Sort
+                const organizedItems = [
+                    ...opmlItems,
+                    ...gnewsItems,
+                    ...newsapiItems,
+                    ...hnItems,
+                    ...dbItems
+                ];
+
+                organizedItems.sort(sortByDate);
+
+                if (organizedItems.length > 0) {
+                    renderMainFeed(organizedItems);
+                    localStorage.setItem(storageKey, JSON.stringify(organizedItems));
+
+                    if (isRefreshing) {
+                        document.getElementById("refresh-indicator").innerText = "Live";
+                        // Show "Refreshed" Toast
+                        const toast = document.createElement("div");
+                        toast.className = "toast-notification";
+                        toast.innerText = `✅ Feed updated with ${organizedItems.length} items`;
+                        toast.style.cssText = "position:fixed; bottom:20px; right:20px; background:#000; color:#fff; padding:12px 24px; border-radius:8px; z-index:9999; animation: slideIn 0.3s ease-out;";
+                        document.body.appendChild(toast);
+                        setTimeout(() => toast.remove(), 3000);
+                    }
+                } else if (!cached) {
+                    listContainer.innerHTML = `<p style="text-align:center; padding:40px;">No recent news found for ${category}. Click "Live" button to refresh.</p>`;
+                }
+
+            } catch (err) {
+                console.error("Fetch error:", err);
+                if (!cached) listContainer.innerHTML = `<p style="text-align:center; color:red;">Connection error.</p>`;
+                document.getElementById("refresh-indicator").innerText = "Error";
+            }
+        }
+
+        // Override openLiveSection to be a Refresher
+        window.openLiveSection = async function () {
+            document.getElementById("refresh-indicator").innerText = "Refreshing...";
+            // showToast is defined in main scope, should be available
+            if (typeof showToast === 'function') showToast("Fetching fresh live news...");
+
+            document.getElementById("list-feed").style.opacity = "0.5";
+            await window.loadCategoryData(currentCategory);
+            document.getElementById("list-feed").style.opacity = "1";
+
+            if (typeof showToast === 'function') showToast("News refreshed!");
+        }
+
+        console.log("✅ PATCH APPLIED: Smart filtering and Live Refresh active.");
     </script>
 
     <!-- LIVE ITEMS MODAL -->
@@ -1637,3 +1833,316 @@
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+<script>
+// === ANTIGRAVITY RESTORE: VERGE ORIGINAL THEME ===
+
+// 1. UTC-Aware Time Ago
+function calculateTimeAgo(dateString) {
+    if (!dateString) return '';
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime(); 
+        const seconds = Math.floor(diffMs / 1000);
+        if (seconds < 60) return 'JUST NOW';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}M AGO`;
+        const hours = Math.floor(minutes / 60);
+        return hours < 24 ? `${hours}H AGO` : `${Math.floor(hours / 24)}D AGO`;
+    } catch(e) { return ''; }
+}
+
+// 2. GLOBAL PULSE: OPML ONLY, 5s REFRESH
+window.fetchWorldUpdates = async function() {
+    try {
+        const response = await fetch(API_BASE + '/data');
+        const data = await response.json();
+
+        // USER DEMAND: ONLY OPML IN GLOBAL PULSE
+        const opmlOnly = data.opml || [];
+
+        // STRICT FRESHNESS: Only Show < 24h
+        const now = Date.now();
+        const freshPulse = opmlOnly.filter(item => {
+            if (!item.created_utc) return false;
+            return (now - new Date(item.created_utc).getTime()) < (24 * 60 * 60 * 1000);
+        });
+
+        // Sort: Newest First
+        freshPulse.sort((a,b) => new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime());
+        const top5 = freshPulse.slice(0, 5);
+
+        const container = document.getElementById("global-updates");
+        
+        if (top5.length > 0) {
+            container.innerHTML = top5.map((item, index) => {
+                const safeSource = (item.feed_title || item.source || 'OPML').toUpperCase();
+                
+                return `
+                <div class="popular-item" onclick="window.open('${item.url}', '_blank')" style="cursor:pointer; border-bottom:1px solid #ddd; padding:15px 0;">
+                    <div class="index-circle" style="background:#000; color:#fff; font-family:'Outfit'; font-weight:700;">${index + 1}</div>
+                    <div class="popular-info">
+                        <h4 style="color:#000; font-family:'Outfit'; font-weight:700; font-size:1.1rem; line-height:1.2; text-transform:none;">${stripHtml(item.text)}</h4>
+                        <span style="color:#FF0055; font-size:0.7rem; font-weight:bold; letter-spacing:1px; margin-top:5px; display:block;">${safeSource} • <span style="color:#888;">${calculateTimeAgo(item.created_utc)}</span></span>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+    } catch (e) { console.error("Pulse Error", e); }
+};
+
+// AUTO-REFRESH GLOBAL PULSE EVERY 5 SECONDS
+setInterval(window.fetchWorldUpdates, 5000);
+
+
+// 3. MAIN FEED: MIXED SOURCES, MASONRY GRID, SHARP CORNERS
+window.renderMainFeed = function(items) {
+    const listContainer = document.getElementById("list-feed");
+    const heroContainer = document.getElementById("hero-container");
+    const now = Date.now();
+
+    // 1. STRICT FRONTEND FILTER (24h Hard Limit)
+    // Filter out blacklist AND old items
+    items = items.filter(i => {
+        if (i.text.includes("Don't let your backend write checks")) return false;
+        if (!i.created_utc) return true; // Keep if no date, but maybe dangerous
+        const ageMs = now - new Date(i.created_utc).getTime();
+        return ageMs < (24 * 60 * 60 * 1000); // 24 HOURS
+    });
+
+    if (!items || items.length === 0) {
+        if (!listContainer.innerHTML.includes("available")) {
+             listContainer.innerHTML = '<p style="text-align:center; padding:40px; font-weight:bold; font-family:var(--font-head);">NO FRESH NEWS AVAILABLE</p>';
+        }
+        return;
+    }
+
+    const heroItem = items[0];
+    const heroHasImage = heroItem.image_url && heroItem.image_url.startsWith('http');
+    
+    // HERO RENDER (Sharp, Bold, Black Text)
+    // Using 'Outfit' for headers
+    heroContainer.innerHTML = `
+        <div class="hero-article" style="margin-bottom:60px; cursor:pointer;" onclick="window.open('${heroItem.url}', '_blank')">
+            <div class="hero-image-wrap" style="${!heroHasImage ? 'display:none;' : ''}">
+                <img src="${heroItem.image_url}" style="width:100%; height:500px; object-fit:cover; border-radius:0;" onerror="this.style.display='none'">
+            </div>
+            <div class="hero-content" style="padding-top:20px;">
+                <div class="meta-line" style="color:#FF0055; font-weight:900; text-transform:uppercase; letter-spacing:1px; font-size:0.9rem; font-family:'Outfit'; margin-bottom:10px;">
+                    ${(heroItem.source || '').split('_')[0]} <span style="color:#000;">//</span> ${calculateTimeAgo(heroItem.created_utc)}
+                </div>
+                <h1 style="font-size:3.5rem; font-weight:900; line-height:1.0; color:#000; font-family:'Outfit'; text-transform:uppercase; letter-spacing:-1px;">
+                    ${stripHtml(heroItem.text)}
+                </h1>
+            </div>
+        </div>
+    `;
+
+    // GRID RENDER (Sharp Cards, Black Text)
+    const gridHTML = items.slice(1).map(item => {
+        const hasImage = item.image_url && item.image_url.startsWith('http');
+        const sourceName = (item.source || '').split('_')[0];
+        const timeAgo = calculateTimeAgo(item.created_utc);
+        const snippet = stripHtml(item.description || item.text || "").substring(0, 100) + '...';
+        
+        // VERGE STYLE CARD
+        return `
+        <div class="feed-card" style="border-top:4px solid #000; padding-top:15px; cursor:pointer; margin-bottom:20px;" onclick="window.open('${item.url}', '_blank')">
+             <div class="card-meta" style="color:#FF0055; font-weight:800; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; font-family:'Outfit';">
+                    ${sourceName} <span style="color:#888;">// ${timeAgo}</span>
+            </div>
+            ${hasImage ? `
+            <div class="card-image" style="width:100%; aspect-ratio:16/9; margin-bottom:10px;">
+                <img src="${item.image_url}" style="width:100%; height:100%; object-fit:cover; border-radius:0;" onerror="this.parentElement.style.display='none'">
+            </div>
+            ` : ''}
+            <div class="card-content">
+                <h3 style="font-family:'Outfit'; font-weight:800; font-size:1.4rem; line-height:1.1; color:#000; margin-bottom:10px; text-transform:uppercase;">
+                    ${stripHtml(item.text).split(' - ')[0]}
+                </h3>
+                ${!hasImage ? `<p style="color:#000; font-family:'Inter'; font-size:1rem; line-height:1.5; font-weight:500;">${snippet}</p>` : ''}
+            </div>
+        </div>
+        `;
+    }).join('');
+
+    listContainer.innerHTML = `
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:40px;">
+            ${gridHTML}
+        </div>
+    `;
+};
+
+// 4. MAIN FEED AUTO REFRESH (15s)
+if (window.feedInterval) clearInterval(window.feedInterval);
+window.feedInterval = setInterval(() => {
+    if (typeof window.loadCategoryData === 'function' && window.currentCategory) {
+        console.log("⚡ Auto-refreshing Main Feed...");
+        window.loadCategoryData(window.currentCategory); 
+    }
+}, 15000);
+
+
+// 5. MODAL (Sharp, White, Black Text)
+window.openLiveSection = async function() {
+    const modal = document.getElementById('live-modal');
+    const content = document.getElementById('live-modal-content');
+    const indicator = document.getElementById("refresh-indicator");
+    modal.style.display = 'flex';
+    // RESET STYLES FOR MODAL (Remove Glass)
+    modal.style.background = "#fff";
+    modal.style.border = "4px solid #000";
+    modal.style.borderRadius = "0";
+    modal.style.backdropFilter = "none";
+    
+    // Close button
+    document.querySelector('.live-modal-close').style.color = "#000";
+    document.querySelector('.live-modal-title').style.color = "#000";
+
+    content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">⚡ FETCHING LIVE UPDATES...</div>';
+    try {
+        indicator.innerText = "Refreshing...";
+        await fetch(API_BASE + '/refresh_opml', { method: 'POST' });
+        await new Promise(r => setTimeout(r, 2000));
+        const res = await fetch(API_BASE + '/data');
+        const data = await res.json();
+        
+        const all = [...(data.opml||[]), ...(data.gnews||[]), ...(data.hackernews||[])];
+        const fresh = all.filter(i => i.created_utc && (Date.now() - new Date(i.created_utc).getTime() < 86400000));
+        fresh.sort((a,b) => new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime());
+        const top5 = fresh.slice(0, 5);
+        if (top5.length > 0) {
+            content.innerHTML = top5.map(item => `
+                <div class="live-item" onclick="window.open('${item.url}', '_blank')" style="background:#fff; border-bottom:1px solid #000; padding:15px; border-radius:0;">
+                   <div class="live-item-top">
+                        <span style="color:#FF0055; font-weight:bold; font-family:'Outfit'; text-transform:uppercase;">${(item.source||'').split('_')[0]}</span>
+                        <span style="color:#000; font-weight:bold;">${calculateTimeAgo(item.created_utc)}</span>
+                    </div>
+                    <h4 style="color:#000; font-size:1.2rem; font-family:'Outfit'; font-weight:800; text-transform:uppercase;">${stripHtml(item.text)}</h4>
+                </div>
+            `).join('');
+            content.innerHTML += `<button onclick="applyLiveToFeed()" style="margin-top:16px; width:100%; padding:16px; background:#000; color:#fff; border:none; border-radius:0; font-weight:900; font-family:'Outfit'; text-transform:uppercase; font-size:1.2rem; cursor:pointer;">SHOW UPDATES</button>`;
+            window.latestFreshItems = fresh; 
+        } else { content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">NO NEW UPDATES.</div>'; }
+        indicator.innerText = "Live";
+    } catch (e) { indicator.innerText = "Error"; }
+};
+
+window.fetchWorldUpdates();
+</script>
+
+
+
+<script>
+// === ANTIGRAVITY REAL-TIME POLLING V1 ===
+
+window.livePollInterval = null;
+
+window.closeLiveModal = function() {
+    const modal = document.getElementById('live-modal');
+    if (modal) modal.style.display = 'none';
+    if (window.livePollInterval) {
+        clearInterval(window.livePollInterval);
+        window.livePollInterval = null;
+        console.log("🛑 Live Polling Stopped.");
+    }
+};
+
+window.applyLiveToFeed = function() {
+    if (window.latestFreshItems && window.latestFreshItems.length > 0) {
+        // Apply directly to main feed
+        window.renderMainFeed(window.latestFreshItems);
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        window.closeLiveModal();
+    }
+};
+
+window.updateLiveModalContent = async function() {
+    const content = document.getElementById('live-modal-content');
+    if (!content) return;
+    
+    try {
+        // Fetch fresh data (Burst mode is running in background)
+        const res = await fetch(API_BASE + '/data');
+        const data = await res.json();
+        
+        const all = [...(data.opml||[]), ...(data.gnews||[]), ...(data.hackernews||[])];
+        // Strict real-time filter (Only last 24h)
+        const fresh = all.filter(i => i.created_utc && (Date.now() - new Date(i.created_utc).getTime() < 86400000));
+        fresh.sort((a,b) => new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime());
+        
+        // Store for "Show Updates"
+        window.latestFreshItems = fresh; 
+        
+        const top10 = fresh.slice(0, 10); // Show more items in modal
+        
+        if (top10.length > 0) {
+            content.innerHTML = top10.map(item => `
+                <div class="live-item" onclick="window.open('${item.url}', '_blank')" style="background:#fff; border-bottom:1px solid #000; padding:15px; border-radius:0; animation: fadeIn 0.5s;">
+                   <div class="live-item-top">
+                        <span style="color:#FF0055; font-weight:bold; font-family:'Outfit'; text-transform:uppercase;">${(item.source||'').split('_')[0]}</span>
+                        <span style="color:#000; font-weight:bold;">${calculateTimeAgo(item.created_utc)}</span>
+                    </div>
+                    <h4 style="color:#000; font-size:1.1rem; font-family:'Outfit'; font-weight:800; text-transform:uppercase;">${stripHtml(item.text)}</h4>
+                </div>
+            `).join('');
+            
+            content.innerHTML += `
+                <button onclick="applyLiveToFeed()" style="margin-top:16px; width:100%; padding:16px; background:#000; color:#fff; border:none; border-radius:0; font-weight:900; font-family:'Outfit'; text-transform:uppercase; font-size:1.2rem; cursor:pointer;">
+                    SHOW ${fresh.length} UPDATES
+                </button>
+            `;
+        } else {
+             content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">SCANNING STREAMS...</div>';
+        }
+    } catch(e) { console.error("Poll Error", e); }
+};
+
+window.openLiveSection = async function() {
+    const modal = document.getElementById('live-modal');
+    const content = document.getElementById('live-modal-content');
+    
+    // Style reset (High Contrast)
+    modal.style.display = 'flex';
+    modal.style.background = "#fff";
+    modal.style.border = "4px solid #000";
+    modal.style.borderRadius = "0";
+    modal.style.backdropFilter = "none";
+    document.querySelector('.live-modal-close').style.color = "#000";
+    document.querySelector('.live-modal-title').style.color = "#000";
+
+    content.innerHTML = '<div style="text-align:center; padding:40px; color:#000; font-weight:bold;">⚡ STARTING BURST REFRESH...</div>';
+    
+    // 1. Trigger Burst
+    try { await fetch(API_BASE + '/refresh_opml', { method: 'POST' }); } catch(e) {}
+    
+    // 2. Start Polling Loop (Every 1.5s)
+    if (window.livePollInterval) clearInterval(window.livePollInterval);
+    
+    console.log("⚡ Live Polling Started.");
+    window.updateLiveModalContent(); // Immediate call
+    window.livePollInterval = setInterval(window.updateLiveModalContent, 1500);
+};
+
+// CSS Animation for new items
+const style = document.createElement('style');
+style.innerHTML = `
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+`;
+document.head.appendChild(style);
+
+</script>

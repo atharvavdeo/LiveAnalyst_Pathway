@@ -157,3 +157,143 @@ INFO:     127.0.0.1:60240 - "POST /refresh_opml HTTP/1.1" 200 OK
 ⚡ OPML: Restarting feed cycle immediately...
 ✅ OPML: Completed cycle, yielded 134 new items. Sleeping 10s...
 INFO:     127.0.0.1:60240 - "GET /data HTTP/1.1" 200 OK
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+📰 OPML: Yielded 10 items so far...
+✅ HackerNews: Fetched 20 stories
+💾 opml: Saved 1 items to DB
+📰 OPML: Yielded 20 items so far...
+✅ HackerNews: Fetched 20 stories
+💾 gnews: Saved 1 items to DB
+🌍 GNews: Fetched 10 articles
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+✅ HackerNews: Fetched 20 stories
+📰 OPML: Yielded 30 items so far...
+💾 opml: Saved 3 items to DB
+✅ OPML: Completed cycle, yielded 34 new items. Sleeping 10s...
+✅ HackerNews: Fetched 20 stories
+💾 hackernews: Saved 1 items to DB
+✅ HackerNews: Fetched 20 stories
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+💾 opml: Saved 1 items to DB
+💾 opml: Saved 2 items to DB
+💾 hackernews: Saved 1 items to DB
+✅ HackerNews: Fetched 20 stories
+💾 opml: Saved 2 items to DB
+✅ HackerNews: Fetched 20 stories
+💾 gnews: Saved 10 items to DB
+🌍 GNews: Fetched 10 articles
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+💾 hackernews: Saved 3 items to DB
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+💾 gnews: Saved 10 items to DB
+🌍 GNews: Fetched 9 articles
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+💾 gnews: Saved 9 items to DB
+🌍 GNews: Fetched 10 articles
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+💾 gnews: Saved 10 items to DB
+🌍 GNews: Fetched 7 articles
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+✅ HackerNews: Fetched 20 stories
+✅ HackerNews: Fetched 20 stories
+INFO:     127.0.0.1:61440 - "OPTIONS /fetch_news HTTP/1.1" 200 OK
+📥 Fetching news for category: politics
+📰 NewsAPI Fetch: 'politics'
+INFO:     127.0.0.1:61441 - "GET /data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61442 - "GET /data HTTP/1.1" 200 OK
+✅ Found 0 articles for category 'politics'.
+INFO:     127.0.0.1:61440 - "POST /fetch_news HTTP/1.1" 200 OK
+📥 Fetching news for category: fun
+📰 NewsAPI Fetch: 'fun'
+🎉 Fetching FUN stream via Everything endpoint...
+📰 NewsAPI Search Fallback: 'weird news OR viral OR funny OR space OR pop culture'
+✅ NewsAPI found 10 items for 'weird news OR viral OR funny OR space OR pop culture'
+💾 Persisted 0 items from category 'fun'
+INFO:     127.0.0.1:61441 - "POST /fetch_news HTTP/1.1" 200 OK
+🔄 API: Manual OPML Refresh Requested
+⚡ OPML: Manual refresh triggered!
+INFO:     127.0.0.1:61449 - "POST /refresh_opml HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61449 - "GET /data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61455 - "OPTIONS /query HTTP/1.1" 200 OK
+🔎 Received Query: kash patel
+📚 DB History matches: 1
+🌍 GNews Historical Search: 'kash patel' (Last 1000 days)
+✅ Found 3 historical articles.
+🔥 Firecrawl Targeted Scrape: 'kash patel'
+📥 Fetching news for category: politics
+📰 NewsAPI Fetch: 'politics'
+INFO:     127.0.0.1:61459 - "GET /data HTTP/1.1" 200 OK
+❌ Firecrawl Scrape Error: {"error":"Insufficient credits"}
+💾 Persisted 3 new on-demand items
+🧠 Processing 313 items for AI...
+📊 Freshness filter: 313 → 22 items
+🔍 Keyword matches: 3 items
+📦 Final hybrid context: 13 items
+✅ Found 0 articles for category 'politics'.
+INFO:     127.0.0.1:61458 - "POST /fetch_news HTTP/1.1" 200 OK
+❌ Gemini Error: 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+🔄 Gemini failed, trying Groq fallback...
+INFO:     127.0.0.1:61455 - "POST /query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61470 - "GET /data HTTP/1.1" 200 OK
+📥 Fetching news for category: politics
+📰 NewsAPI Fetch: 'politics'
+INFO:     127.0.0.1:61472 - "GET /data HTTP/1.1" 200 OK
+✅ Found 0 articles for category 'politics'.
+INFO:     127.0.0.1:61471 - "POST /fetch_news HTTP/1.1" 200 OK
+💾 gnews: Saved 7 items to DB
+🌍 GNews: Fetched 10 articles
+❌ Firecrawl Error 402: {"error":"Insufficient credits"}
+📥 Fetching news for category: technology
+📰 NewsAPI Fetch: 'technology'
+INFO:     127.0.0.1:61481 - "GET /data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61482 - "GET /data HTTP/1.1" 200 OK
+✅ Found 20 articles for category 'technology'.
+💾 Persisted 0 items from category 'technology'
+INFO:     127.0.0.1:61480 - "POST /fetch_news HTTP/1.1" 200 OK
+📥 Fetching news for category: fun
+📰 NewsAPI Fetch: 'fun'
+🎉 Fetching FUN stream via Everything endpoint...
+📰 NewsAPI Search Fallback: 'weird news OR viral OR funny OR space OR pop culture'
+✅ NewsAPI found 10 items for 'weird news OR viral OR funny OR space OR pop culture'
+💾 Persisted 0 items from category 'fun'
+INFO:     127.0.0.1:61481 - "POST /fetch_news HTTP/1.1" 200 OK
+📥 Fetching news for category: politics
+📰 NewsAPI Fetch: 'politics'
+✅ Found 0 articles for category 'politics'.
+INFO:     127.0.0.1:61491 - "POST /fetch_news HTTP/1.1" 200 OK
+💾 hackernews: Saved 2 items to DB
+✅ HackerNews: Fetched 20 stories
+📥 Fetching news for category: technology
+📰 NewsAPI Fetch: 'technology'
+INFO:     127.0.0.1:61504 - "GET /data HTTP/1.1" 200 OK
+✅ Found 20 articles for category 'technology'.
+💾 Persisted 0 items from category 'technology'
+INFO:     127.0.0.1:61503 - "POST /fetch_news HTTP/1.1" 200 OK
+🔄 API: Manual OPML Refresh Requested
+⚡ OPML: Manual refresh triggered!
+INFO:     127.0.0.1:61512 - "POST /refresh_opml HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [39673]

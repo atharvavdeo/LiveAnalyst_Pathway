@@ -1,7 +1,6 @@
 import time
 import requests
 import yaml
-import pathway as pw
 from pathlib import Path
 
 # Load config
@@ -13,7 +12,9 @@ try:
 except Exception as e:
     API_KEY = None
 
-class NewsDataConnector(pw.io.python.ConnectorSubject):
+class NewsDataConnector:
+    """Simple generator-based connector for NewsData.io"""
+    
     def run(self):
         if not API_KEY or API_KEY == "your_newsdata_api_key":
             print("⚠️ No NewsData.io Key configured. Skipping...")
@@ -49,6 +50,7 @@ class NewsDataConnector(pw.io.python.ConnectorSubject):
                                 "source": "newsdata",
                                 "text": f"{article.get('title', '')}. {article.get('description', '')}",
                                 "url": link,
+                                "image_url": article.get("image_url"),
                                 "created_utc": str(article.get("pubDate", "")),
                                 "reliability": "High" 
                             }
@@ -60,19 +62,7 @@ class NewsDataConnector(pw.io.python.ConnectorSubject):
             except Exception as e:
                 print(f"❌ NewsData Connection Error: {e}")
                 
-            time.sleep(900)
-
-class NewsSchema(pw.Schema):
-    source: str
-    text: str
-    url: str
-    created_utc: str
-    reliability: str
-
-newsdata_table = pw.io.python.read(
-    NewsDataConnector(),
-    schema=NewsSchema
-)
+            time.sleep(300)  # Poll every 5 minutes
 
 # --- ON-DEMAND CATEGORY FETCH ---
 def fetch_category(category: str) -> list:

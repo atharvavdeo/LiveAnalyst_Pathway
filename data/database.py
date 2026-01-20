@@ -79,23 +79,44 @@ def save_articles_batch(articles: List[Dict]) -> int:
             count += 1
     return count
 
-def search_history(query: str, limit: int = 20) -> List[Dict]:
+def search_history(query: str, limit: int = 50) -> List[Dict]:
     """
-    Search historical articles using simple LIKE query.
+    Search historical articles using keyword-based search.
+    Splits query into words for broader matching.
     """
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     
-    # Simple keyword search
-    like_query = f"%{query}%"
+    # Split query into keywords for broader matching
+    keywords = [word.strip() for word in query.lower().split() if len(word.strip()) > 2]
     
-    cursor.execute("""
-        SELECT * FROM articles 
-        WHERE content LIKE ? OR title LIKE ?
-        ORDER BY created_at DESC 
-        LIMIT ?
-    """, (like_query, like_query, limit))
+    if not keywords:
+        # Fallback to full query if no keywords
+        like_query = f"%{query}%"
+        cursor.execute("""
+            SELECT * FROM articles 
+            WHERE content LIKE ? OR title LIKE ?
+            ORDER BY created_at DESC 
+            LIMIT ?
+        """, (like_query, like_query, limit))
+    else:
+        # Build OR query for each keyword
+        conditions = []
+        params = []
+        for kw in keywords[:5]:  # Limit to first 5 keywords
+            conditions.append("(content LIKE ? OR title LIKE ?)")
+            params.extend([f"%{kw}%", f"%{kw}%"])
+        
+        where_clause = " OR ".join(conditions)
+        params.append(limit)
+        
+        cursor.execute(f"""
+            SELECT * FROM articles 
+            WHERE {where_clause}
+            ORDER BY created_at DESC 
+            LIMIT ?
+        """, tuple(params))
     
     rows = cursor.fetchall()
     conn.close()
@@ -103,13 +124,14 @@ def search_history(query: str, limit: int = 20) -> List[Dict]:
     results = []
     for row in rows:
         results.append({
-            "source": row["source"],
+            "source": row["source"] + "_db",  # Mark as DB source
             "text": row["content"],
             "url": row["url"],
             "created_utc": row["published_date"],
             "reliability": row["reliability"],
             "is_historical": True
         })
+    print(f"📚 DB search found {len(results)} historical articles")
     return results
 
 def get_stats() -> Dict:

@@ -58,17 +58,27 @@ class OPMLIngestor:
                     self._parse_opml(resp.content)
             except Exception as e:
                 print(f"❌ Failed to fetch OPML {url}: {e}")
-        print(f"✅ Loaded {len(self.feed_urls)} active feeds.")
+        print(f"✅ Loaded {len(self.feed_urls)} active feeds from OPML.")
+        
+        # INJECT FIREHOSE FEEDS
+        count_before = len(self.feed_urls)
+        for url, cat in DIRECT_RSS_FEEDS:
+            self.feed_urls.add((url, cat))
+        print(f"🔥 Injected {len(self.feed_urls) - count_before} High-Frequency Firehose Feeds.")
+        print(f"🚀 Total Active Feeds: {len(self.feed_urls)}")
 
     def manual_refresh(self):
-        """Triggers an immediate restart of the feed cycle"""
-        print("⚡ OPML: Manual refresh triggered!")
+        """Trigger an immediate restart of the fetching loop with BURST SPEED."""
+        print("⚡ OPML: Manual refresh signal received! Activating BURST MODE.")
         self.force_restart = True
+        self.burst_mode = True # Activate burst mode
 
     def run(self):
         # Initial Load
         self._refresh_sources()
+        self.seen_entries = set()
         self.force_restart = False
+        self.burst_mode = False # Add burst mode flag
         
         if not self.feed_urls:
             print("⚠️ OPML: No feeds loaded, streaming disabled.")
@@ -79,9 +89,19 @@ class OPMLIngestor:
         print(f"🚀 OPML: Starting to parse {len(self.feed_urls)} RSS feeds...")
         
         while True:
-            # Convert set to list and shuffle to avoid hammering one server
-            feeds = list(self.feed_urls)
-            random.shuffle(feeds)
+            # 1. Convert to list
+            all_feeds = list(self.feed_urls)
+            
+            # 2. Separate Firehose from the rest
+            firehose = [f for f in all_feeds if any(d[0] == f[0] for d in DIRECT_RSS_FEEDS)]
+            others = [f for f in all_feeds if f not in firehose]
+            
+            # 3. Shuffle others to keep variety
+            random.shuffle(others)
+            
+            # 4. PREPEND Firehose to ensure they are scanned FIRST
+            feeds = firehose + others
+            
             items_yielded = 0
             
             # Reset flag at start of cycle
@@ -93,6 +113,9 @@ class OPMLIngestor:
                 if self.force_restart:
                     print("⚡ OPML: Restarting feed cycle immediately...")
                     break
+
+                # BURST MODE: If active, sleep is 0. Else use standard 0.05s
+                sleep_time = 0.0 if self.burst_mode else 0.05
 
                 try:
                     # Parse the individual RSS feed with timeout
@@ -107,14 +130,7 @@ class OPMLIngestor:
                     # Process top 3 entries to keep latency low
                     for entry in feed.entries[:3]:
                         if hasattr(entry, 'link') and entry.link not in self.seen_entries:
-                            self.seen_entries.add(entry.link)
-                            items_yielded += 1
-                            
-                            # Log progress every 10 items
-                            if items_yielded % 10 == 0:
-                                print(f"📰 OPML: Yielded {items_yielded} items so far...")
-                            
-                            # Get ACTUAL publication date from RSS, not ingestion time
+                            # Get ACTUAL publication date from RSS
                             pub_date = None
                             if hasattr(entry, 'published_parsed') and entry.published_parsed:
                                 pub_date = time.strftime('%Y-%m-%dT%H:%M:%SZ', entry.published_parsed)
@@ -123,7 +139,33 @@ class OPMLIngestor:
                             elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
                                 pub_date = time.strftime('%Y-%m-%dT%H:%M:%SZ', entry.updated_parsed)
                             else:
+                                # No date = use current time
                                 pub_date = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                            
+                            # === FRESHNESS FILTER: Only yield articles < 24 hours old ===
+                            try:
+                                from datetime import datetime, timezone
+                                # Parse the pub_date
+                                if 'T' in pub_date:
+                                    article_time = datetime.fromisoformat(pub_date.replace('Z', '+00:00'))
+                                else:
+                                    article_time = datetime.now(timezone.utc)
+                                
+                                age_hours = (datetime.now(timezone.utc) - article_time).total_seconds() / 3600
+                                
+                                # STRICT FRESHNESS: Skip articles older than 24 hours
+                                if age_hours > 24:
+                                    # print(f"⚠️ Skipping old article ({age_hours:.1f}h): {entry.get('title', 'Unknown')}")
+                                    continue
+                            except:
+                                pass  # If date parsing fails, include the article
+                            
+                            self.seen_entries.add(entry.link)
+                            items_yielded += 1
+                            
+                            # Log progress every 10 items
+                            if items_yielded % 10 == 0:
+                                print(f"📰 OPML: Yielded {items_yielded} items so far...")
                             
                             # Yield normalized schema for Pathway
                             yield {
@@ -136,14 +178,31 @@ class OPMLIngestor:
                                 "feed_title": feed.feed.get('title', 'Unknown')
                             }
                 except Exception as e:
+                    # print(f"⚠️ Error processing feed {url}: {e}") # Optional: uncomment for debugging
                     continue  # Skip broken feeds
                 
-                # Tiny sleep to be a "polite" crawler
-                time.sleep(0.05)  
+                # Tiny sleep to be a "polite" crawler (or 0 if BURST)
+                time.sleep(sleep_time)  
 
-            print(f"✅ OPML: Completed cycle, yielded {items_yielded} new items. Sleeping {self.poll_frequency}s...")
-            # Wait before restarting the massive loop
-            time.sleep(self.poll_frequency)
+            # === BURST MODE LOGIC ===
+            # If burst mode was active, turn it off after one full cycle
+            if self.burst_mode:
+                print(f"🏁 OPML: Burst cycle complete. Returning to polite mode (sleep={self.poll_frequency}s).")
+                self.burst_mode = False
+            
+            print(f"✅ OPML: Completed cycle, yielded {items_yielded} new items. Sleeping...")
+            
+            # Interruptible Sleep (Check every 0.1s for manual refresh)
+            sleep_target = self.poll_frequency
+            # If burst mode just triggered (unlikely here, usually set in manual_refresh), skip sleep
+            if self.burst_mode: 
+                sleep_target = 0
+                
+            for _ in range(int(sleep_target * 10)):
+                if self.force_restart:
+                    print("⚡ OPML: Waking up early due to manual refresh!")
+                    break
+                time.sleep(0.1)
 
 
 # Pathway Schema for OPML items
@@ -159,13 +218,30 @@ class OPMLIngestor:
 # Default OPML sources from awesome-rss-feeds repository
 # Uses regex parsing to handle malformed XML in OPML files
 DEFAULT_OPML_URLS = [
-    # With category (higher quality feeds with proper categorization)
+    # === MASSIVE OPML INGESTION LIST ===
     "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Technology.opml",
     "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Programming.opml",
     "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/News.opml",
     "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Science.opml",
-    # Without category (additional tech feeds)
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Business.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Finance.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Entertainment.opml",
     "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/Tech.opml",
+    "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/feeds.opml", # THE BIG ONE (All Feeds)
+]
+
+# HIGH FREQUENCY FIREHOSE (Manual Injection)
+DIRECT_RSS_FEEDS = [
+    ("http://feeds.bbci.co.uk/news/rss.xml", "Global"),
+    ("http://rss.cnn.com/rss/cnn_topstories.rss", "Global"),
+    ("https://www.theverge.com/rss/index.xml", "Tech"),
+    ("https://techcrunch.com/feed/", "Tech"),
+    ("https://www.wired.com/feed/rss", "Tech"),
+    ("https://feeds.npr.org/1001/rss.xml", "News"),
+    ("http://feeds.reuters.com/reuters/topNews", "News"),
+    ("https://www.nytimes.com/services/xml/rss/nyt/HomePage.xml", "News"),
+    ("https://api.quartz.com/feed", "Business"),
+    ("https://rss.nytimes.com/services/xml/rss/nyt/Business.xml", "Business"),
 ]
 
 

@@ -19,11 +19,12 @@ Pathway is powered by a scalable Rust engine based on Differential Dataflow and 
 ## Key Features
 
 *   **Pathway-Powered Connectors**: Seamless integration of multiple data sources into a unified ETL pipeline.
-*   **High-Throughput Ingestion**: Simultaneously streams data from **1800+ Global RSS feeds** (OPML) alongside premium APIs.
-*   **Real-Time Fetch**: Front-end trigger for immediate, interrupt-driven refresh of the ingestion engine, ensuring sub-second data freshness.
+*   **High-Throughput Firehose**: Simultaneously streams data from **Massive OPML Collections** along with **Direct Firehose Injection** (CNN, BBC, Reuters) for instant breaking news.
+*   **Burst Mode Ingestion**: Front-end "Fetch Live" trigger activates **Burst Mode**, ingesting hundreds of feeds/second with zero latency.
+*   **Real-Time Polling**: Frontend actively polls for new data every 1.5 seconds during live sessions, ensuring zero-delay updates.
 *   **Hybrid RAG Pipeline**:
-    *   **Retrieval**: Combines live memory buffers with historical SQLite storage.
-    *   **Generation**: Uses **Gemini 3.0 Flash** with automatic failover to **Groq**.
+    *   **Retrieval**: Combines live memory buffers with detailed historical SQLite storage.
+    *   **Generation**: Uses **Gemini 1.5 Flash** with automatic failover to **Groq**.
 *   **Intelligent Deduplication**: Deduplication logic to remove duplicate stories across different sources.
 
 ## Pathway Features in this App
@@ -40,14 +41,15 @@ graph LR
 
     subgraph Inputs ["Data Ingestion Streams"]
         direction TB
-        News[NewsAPI]
-        GNews[GNews]
+        Firehose[Firehose RSS (CNN/BBC)]
+        OPML[Massive OPML Feeds]
+        GNews[GNews API]
         Social[Reddit/HN]
-        OPML[OPML 1800+]
     end
 
     subgraph Core ["Pathway ETL Engine"]
         Buffer[(Live Stream Buffer)]
+        Burst[Burst Mode Controller]
     end
 
     subgraph Brain ["AI & Analysis"]
@@ -57,7 +59,7 @@ graph LR
     end
 
     %% Data Flow
-    News & GNews & Social & OPML --> Buffer
+    Firehose & OPML & GNews & Social --> Buffer
     Buffer --> RAG
 
     %% App Flow
@@ -68,29 +70,20 @@ graph LR
 
     %% Control Flow
     User -.->|Fetch Live| API
-    API -.->|Restart Signal| OPML
+    API -.->|Trigger Burst Mode| Burst
+    Burst -->|Instant Refresh| Firehose
+    Burst -->|Instant Refresh| OPML
 ```
-
-## Key Features
-
-*   **Pathway-Powered Connectors**: Seamless integration of multiple data sources into a unified ETL pipeline.
-*   **High-Throughput Ingestion**: Simultaneously streams data from **1800+ Global RSS feeds** (OPML) alongside premium APIs.
-*   **Real-Time Fetch**: Front-end trigger for immediate, interrupt-driven refresh of the ingestion engine, ensuring sub-second data freshness.
-*   **Hybrid RAG Pipeline**:
-    *   **Retrieval**: Combines live memory buffers with historical SQLite storage.
-    *   **Generation**: Uses **Gemini 1.5 Flash** with automatic failover to **Groq**.
-*   **Intelligent Deduplication**: Deduplication logic to remove duplicate stories across different sources.
-
----
 
 ## High-Throughput OPML Architecture
 
-This subsystem ensures that the platform has access to a massive, uncensored stream of global information by processing **1800+ global RSS feeds** in real-time.
+This subsystem ensures that the platform has access to a massive, uncensored stream of global information by processing **thousands of global RSS feeds** in real-time.
 
 ### Core Components
 1.  **OPMLIngestor Class**:
-    *   **Role**: The engine core. Downloads OPML lists from GitHub, manages feed URLs.
-    *   **Real-Time Trigger**: Listens for a restart flag to break loops and fetch fresh data instantly.
+    *   **Role**: The engine core. Downloads massive OPML lists and manages feed URLs.
+    *   **Firehose Injection**: Prioritizes high-frequency feeds (BBC, CNN, Reuters) at the start of every cycle.
+    *   **Burst Mode**: Switches from "polite crawler" to "zero-sleep ingestion" mode upon manual trigger to ingest the entire stream instantly.
 
 2.  **Global Thread Manager**:
     *   **Role**: Instantiates a Global Instance of the ingestor at startup to maintain state.
@@ -98,33 +91,26 @@ This subsystem ensures that the platform has access to a massive, uncensored str
 ### OPML Data Flow Diagram
 ```mermaid
 sequenceDiagram
-    participant User as "Frontend (User)"
+    participant User as "Frontend (Pulse)"
     participant API as "FastAPI (/refresh_opml)"
-    participant Thread as "Pathway Thread Manager"
     participant Engine as "Pathway Connector (OPML)"
-    participant Web as "The Internet"
-    participant Store as "Pathway Stream Buffer"
+    participant Web as "Global News Web"
+    participant Cache as "No-Store Response"
 
-    Note over Thread, Web: Default State: Background Loop
-    Thread->>Engine: Loop through feeds...
-    Engine->>Web: Fetch RSS
-    Web-->>Engine: XML Data
-    Engine->>Store: Yield New Items
-
+    Note over Engine, Web: Standard Mode: Polite Crawling
+    Engine->>Web: Fetch Feeds (0.05s Sleep)
+    
     User->>API: Click "Fetch Live"
-    API->>Engine: manual_refresh()
+    API->>Engine: ACTIVATE BURST MODE
     API-->>User: 200 OK
     
-    Note over Engine: Check Flag -> True
-    Engine->>Thread: RESTART Loop
+    Note over Engine: Sleep = 0.0s (Max Speed)
+    Engine->>Web: FETCH ALL FEEDS INSTANTLY
+    Web-->>Engine: XML Data
+    Engine->>Cache: Yield FRESH Items
     
-    Thread->>Engine: Start Fresh Cycle
-    Engine->>Web: Fetch Priority Feeds
-    Web-->>Engine: Fresh XML
-    Engine->>Store: Yield FRESH Items
-    
-    User->>Store: Fetch /data
-    Store-->>User: Return Top 10 Live Items
+    User->>Cache: Polls /data (Every 1.5s)
+    Cache-->>User: Returns Real-Time Stream
 ```
 
 ---
@@ -138,7 +124,6 @@ Follow these steps to deploy the system locally.
 *   **API Keys**: You need keys for:
     *   **Gemini** (Google AI)
     *   **Groq** (Llama 3 Inference)
-    *   **NewsAPI** (Breaking News)
     *   **GNews** (Historical Data)
 
 ### 2. Configuration
@@ -151,7 +136,6 @@ Follow these steps to deploy the system locally.
     ```env
     GEMINI_API_KEY=your_key_here
     GROQ_API_KEY=your_key_here
-    NEWSAPI_KEY=your_key_here
     GNEWS_API_KEY=your_key_here
     ```
 
@@ -162,24 +146,15 @@ pip install -r requirements.txt
 ```
 
 ### 4. Execution
-Run the main application script. This initializes the FastAPI server and spawns the 5 background Pathway daemon threads (News, Social, OPML, Firecrawl, GNews).
+Run the main application script. This initializes the FastAPI server and spawns the background Pathway daemon threads.
 
 ```bash
 python3 app_pathway.py
 ```
 *Expected Output*:
 > `INFO: Uvicorn running on http://0.0.0.0:8000`
-> `🚀 OPML: Starting to parse 1800+ RSS feeds...`
-
-### Real-Time Streaming Mechanics
-The application uses a **Pull-Push Hybrid Model** for maximum responsiveness:
-1.  **Passive Mode**: The dashboard polls `/data` every 30 seconds for background updates from the Pathway Engine.
-2.  **Active Mode (Real-Time Interrupt)**:
-    *   Click the **"Fetch Live"** button in the UI header.
-    *   This sends a `POST /refresh_opml` signal to the backend.
-    *   The **Pathway Connector (OPML)** immediately terminates its current shuffle cycle.
-    *   It re-fetches high-priority sources in **real-time** (< 1 sec latency).
-    *   The UI updates via the modal with fresh items that were just ingested.
+> `🚀 OPML: Starting to parse 2000+ RSS feeds...`
+> `🔥 Injected 10 High-Frequency Firehose Feeds.`
 
 ---
 
@@ -191,10 +166,10 @@ The system exposes a RESTful API for frontend integration and external webhooks.
 | :--- | :--- | :--- | :--- |
 | `GET` | `/` | Landing Page | None |
 | `GET` | `/app` | Main Dashboard Application | None |
-| `GET` | `/data` | Fetch current engine stats and memory buffer dump | None |
+| `GET` | `/data` | Fetch current engine stats and real-time buffer (No-Cache) | None |
 | `POST` | `/fetch_news` | Get categorical news (Business, Tech, etc.) | `{"category": "business"}` |
-| `POST` | `/query` | Perform RAG Analysis (Search) | `{"query": "Shark Tank"}` |
-| `POST` | `/refresh_opml` | **Interrupt Signal**: Forces immediate OPML refresh | None |
+| `POST` | `/query` | Perform RAG Analysis (Search) | `{"query": "Trump"}` |
+| `POST` | `/refresh_opml` | **Burst Signal**: Triggers "Firehose" instant ingestion | None |
 
 ---
 
@@ -210,9 +185,9 @@ LiveSocialAnalyst/
 ├── .env                   # Secrets (GitIgnored)
 │
 ├── ingest/                # PATHWAY CONNECTORS (Data Ingestion)
-│   ├── opml_loader.py     # High-Throughput (1800+ Feeds)
-│   ├── newsapi_connector.py
+│   ├── opml_loader.py     # High-Throughput Burst Ingestor
 │   ├── gnews_connector.py
+│   ├── firecrawl_connector.py
 │   ├── reddit_stream.py
 │   └── hackernews_stream.py
 │
@@ -220,8 +195,7 @@ LiveSocialAnalyst/
 │   └── gemini_rag.py      # Hybrid RAG & LLM Logic
 │
 ├── frontend/              # PRESENTATION LAYER
-│   ├── index.html         # Main SPA Dashboard
-│   ├── landing.html       # Intro Page
+│   ├── index.html         # Main SPA Real-Time Dashboard
 │   └── assets/
 │
 └── data/                  # PERSISTENCE LAYER

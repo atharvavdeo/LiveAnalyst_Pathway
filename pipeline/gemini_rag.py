@@ -18,19 +18,13 @@ except Exception as e:
     print(f"⚠️ Error loading config for Gemini: {e}")
     GEMINI_API_KEY = None
 
-# Vector Store (lazy import to avoid startup delay)
+# Vector Store DISABLED to avoid mutex lock issues with sentence_transformers
 _vector_store = None
 
 def get_vector_store():
-    global _vector_store
-    if _vector_store is None:
-        try:
-            from pipeline.vector_store import VectorStore
-            _vector_store = VectorStore()
-        except Exception as e:
-            print(f"⚠️ Vector store unavailable: {e}")
-            _vector_store = False  # Mark as failed
-    return _vector_store if _vector_store else None
+    # DISABLED: Vector store causes mutex lock with sentence_transformers
+    # Using keyword matching instead for fast, reliable search
+    return None
 
 
 def filter_fresh_items(items: list, max_age_seconds: int = 300) -> list:
@@ -181,12 +175,21 @@ def pathway_rag_query(context_items: list, question: str) -> dict:
         vector_matches = vs.search(question, n_results=20)
         print(f"🧠 Vector matches: {len(vector_matches)} items from {vs.count()} total indexed")
     
-    # === STEP 5: Hybrid context (combine all sources) ===
+    # === STEP 5: Hybrid context (combine all sources) - OPML FIRST ===
     seen_urls = set()
     hybrid_context = []
     
-    # Priority 1: Keyword matches (most relevant)
-    for item in keyword_matches[:15]:
+    # PRIORITY 0: OPML items from keyword matches (HIGHEST PRIORITY)
+    opml_keyword = [i for i in keyword_matches if i.get('source') == 'opml']
+    for item in opml_keyword[:10]:
+        url = item.get('url', '')
+        if url not in seen_urls:
+            seen_urls.add(url)
+            hybrid_context.append(item)
+    
+    # PRIORITY 1: Other keyword matches
+    other_keyword = [i for i in keyword_matches if i.get('source') != 'opml']
+    for item in other_keyword[:10]:
         url = item.get('url', '')
         if url not in seen_urls:
             seen_urls.add(url)
@@ -206,8 +209,15 @@ def pathway_rag_query(context_items: list, question: str) -> dict:
             seen_urls.add(url)
             hybrid_context.append(item)
     
-    # Priority 4: Fill remaining with live items
-    for item in list(fresh_items)[:10]:
+    # Priority 4: Fill remaining with live items (OPML first)
+    opml_live = [i for i in fresh_items if i.get('source') == 'opml']
+    for item in opml_live[:5]:
+        url = item.get('url', '')
+        if url not in seen_urls:
+            seen_urls.add(url)
+            hybrid_context.append(item)
+    
+    for item in list(fresh_items)[:5]:
         url = item.get('url', '')
         if url not in seen_urls:
             seen_urls.add(url)
@@ -217,7 +227,8 @@ def pathway_rag_query(context_items: list, question: str) -> dict:
         # Fallback to most recent items if no matches
         hybrid_context = context_items[-20:]
     
-    print(f"📦 Final hybrid context: {len(hybrid_context)} items")
+    opml_in_context = sum(1 for i in hybrid_context if i.get('source') == 'opml')
+    print(f"📦 Final hybrid context: {len(hybrid_context)} items (OPML: {opml_in_context} prioritized)")
     
     # === STEP 5: Build context string ===
     context_parts = []
