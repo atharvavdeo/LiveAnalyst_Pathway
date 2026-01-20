@@ -70,6 +70,11 @@ class OPMLIngestor:
     def manual_refresh(self):
         """Trigger an immediate restart of the fetching loop with BURST SPEED."""
         print("⚡ OPML: Manual refresh signal received! Activating BURST MODE.")
+        
+        # CRITICAL: Clear seen_entries to allow re-yielding recent articles
+        print(f"🧹 Clearing {len(self.seen_entries)} seen entries to allow fresh fetch")
+        self.seen_entries.clear()
+        
         self.force_restart = True
         self.burst_mode = True # Activate burst mode
 
