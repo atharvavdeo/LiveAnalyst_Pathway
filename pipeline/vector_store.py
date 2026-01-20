@@ -105,15 +105,18 @@ class VectorStore:
         embeddings = self.embedder.encode(documents).tolist()
         
         # Add to collection
+        # Add to collection
         try:
-            self.collection.add(
-                ids=ids,
-                embeddings=embeddings,
-                documents=documents,
-                metadatas=metadatas
-            )
+            with self._lock:  # CRITICAL: Lock during write to prevent mutex errors
+                self.collection.add(
+                    ids=ids,
+                    embeddings=embeddings,
+                    documents=documents,
+                    metadatas=metadatas
+                )
         except Exception as e:
             # Handle duplicate ID errors gracefully
+            print(f"⚠️ Vector add error: {e}")
             pass
             
         return len(new_items)
