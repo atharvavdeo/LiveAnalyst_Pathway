@@ -2152,26 +2152,34 @@ document.head.appendChild(style);
 
 window.calculateTimeAgo = function(dateString) {
     if (!dateString) return 'Unknown Date';
-
+    
     const now = new Date();
     const date = new Date(dateString);
-
-    // If date is invalid, return the raw string (better than lying)
+    
+    // DEBUG: Log what we're parsing
+    // console.log(`Parsing date: ${dateString} -> ${date.toString()}`);
+    
+    // If date is invalid, return the raw string
     if (isNaN(date.getTime())) {
-        return dateString; 
+        console.warn(`Invalid date: ${dateString}`);
+        return dateString.substring(0, 20); // Show first 20 chars
     }
-
+    
     const diffMs = now - date;
     const diffSec = Math.floor(diffMs / 1000);
     const diffMin = Math.floor(diffSec / 60);
     const diffHour = Math.floor(diffMin / 60);
     const diffDay = Math.floor(diffHour / 24);
-
-    // FUTURE DATE? (Clock screw)
-    if (diffMs < 0) {
-        return 'Just now'; 
+    
+    // FUTURE DATE? (Clock skew or bad data) - Show the actual date
+    if (diffMs < -3600000) { // More than 1 hour in future
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
     }
-
+    
+    // Very recent (treat small negative values as "now")
+    if (diffMs < 0) return 'Just now';
+    
     // < 1 Minute
     if (diffSec < 60) return 'Just now';
     
@@ -2181,9 +2189,13 @@ window.calculateTimeAgo = function(dateString) {
     // < 24 Hours
     if (diffHour < 24) return diffHour + 'h ago';
     
-    // > 24 Hours: Show Date (e.g. "Jan 16")
+    // < 7 Days
+    if (diffDay < 7) return diffDay + 'd ago';
+    
+    // Older: Show actual date
     const options = { month: 'short', day: 'numeric' };
-    return date.toLocaleDateString('en-US', options); 
+    if (diffDay > 365) options.year = 'numeric';
+    return date.toLocaleDateString('en-US', options);
 };
 
 console.log("✅ Fixed Date Parsing Logic Applied.");
