@@ -131,7 +131,8 @@ class OPMLIngestor:
                                 # print(f"⚠️ Skipping article with no date: {entry.get('title', 'Unknown')}")
                                 continue
                             
-                            # === FRESHNESS FILTER: Only yield articles < 24 hours old ===
+                            # === FRESHNESS FILTER: Only yield articles < 6 hours old ===
+                            # REDUCED from 24h to 6h to ensure continuous fresh content
                             try:
                                 from datetime import datetime, timezone
                                 # Parse the pub_date
@@ -142,8 +143,8 @@ class OPMLIngestor:
                                 
                                 age_hours = (datetime.now(timezone.utc) - article_time).total_seconds() / 3600
                                 
-                                # STRICT FRESHNESS: Skip articles older than 24 hours
-                                if age_hours > 24:
+                                # STRICT FRESHNESS: Skip articles older than 6 hours
+                                if age_hours > 6:
                                     # print(f"⚠️ Skipping old article ({age_hours:.1f}h): {entry.get('title', 'Unknown')}")
                                     continue
                             except:

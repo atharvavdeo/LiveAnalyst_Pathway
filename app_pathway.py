@@ -111,9 +111,9 @@ def startup():
     threading.Thread(target=run_connector, args=(RedditConnector().run(), "reddit"), daemon=True).start()
     threading.Thread(target=run_connector, args=(FirecrawlConnector().run(), "firecrawl"), daemon=True).start()
     
-    # 🚀 NUCLEAR OPTION: OPML Mass Ingestion (1800+ feeds) - High Frequency (10s)
+    # 🚀 OPML Mass Ingestion (1800+ feeds) - Aggressive Frequency (2s between cycles)
     global global_opml
-    global_opml = OPMLIngestor(DEFAULT_OPML_URLS, poll_frequency=10)
+    global_opml = OPMLIngestor(DEFAULT_OPML_URLS, poll_frequency=2)
     threading.Thread(target=run_connector, args=(global_opml.run(), "opml"), daemon=True).start()
     
     print("✅ All streams active (NewsData.io + OPML + GNews + HackerNews)")
