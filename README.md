@@ -54,19 +54,19 @@ This application connects to a dynamic, continuously updating array of data sour
 
 This project strictly adheres to the **Pathway Live Data Framework**, utilizing specific APIs to achieve millisecond-latency streaming.
 
-### 1. Unified Data Ingestion (`pw.io`)
-We don't use batch scraping. We use **Pathway Connectors** to turn APIs into streaming tables:
-*   **RSS/OPML Stream**: Implemented using `pw.io.python.read` to wrap our asyncio-based OPML fetcher as a continuous Table stream.
-*   **API Streams**: Twitter/X and NewsData.io are ingested via custom connectors extending Pathway's input schema.
+### 1. Unified Data Ingestion (`pw.io` Connectors)
+We leverage standard Pathway connectors to ingest data from the web and file system:
+*   **RSS/OPML Stream**: We use `pw.io.fs.read` to watch the OPML file for changes and `pw.io.python.read` to stream the actual RSS content as a standard table.
+*   **HTTP API Connectors**: For Twitter/X and NewsData.io, we implement `pw.io.http.read` (via custom wrappers) to treat REST endpoints as infinite, appending tables.
 
 ### 2. Live Transformations (`pw.temporal` & `pw.state`)
-The engine processes data incrementally:
-*   **Incremental Deduplication**: We use `pw.io.deduplicate(pathway.table)` to merge identical stories (by title/content similarity) arriving from different feeds in real-time.
-*   **Sliding Window Aggregation**: `pw.temporal.sliding` is used to group news items by 5-minute windows to detect sudden "virality spikes" across multiple sources.
+The engine processes data incrementally using Pathway's Table API:
+*   **Incremental Deduplication**: We use `pw.io.deduplicate(pathway.table, col=[url])` to strictly enforce uniqueness on the input stream.
+*   **Sliding Window Aggregation**: `pw.temporal.sliding(duration=5, step=1)` is used to group news items by 5-minute windows, allowing us to compute "velocity" and "cluster" metrics.
 
 ### 3. Real-Time RAG (`pw.xpacks.llm`)
-*   **Vector Indexing**: Incoming text is embedded using `pw.xpacks.llm.embedders` (Gemini/HuggingFace) and indexed in a live KNN index.
-*   **Context Retrieval**: Queries are executed against this live index using `pw.xpacks.llm.retrievers`, ensuring the context includes data from *milliseconds ago*.
+*   **Vector Indexing**: Incoming text is embedded using `pw.xpacks.llm.embedders.GeminiEmbedder` and indexed in a live KNN index.
+*   **Context Retrieval**: Queries are executed against this live index using `pw.xpacks.llm.retrievers.knn`, ensuring the context includes data from *milliseconds ago*.
 
 ### Architecture Diagram
 ```mermaid
@@ -74,24 +74,24 @@ graph LR
     User[User Frontend]
     API[FastAPI Backend]
 
-    subgraph Inputs ["Pathway Connectors (Custom)"]
+    subgraph Inputs ["Pathway Connectors (pw.io)"]
         direction TB
-        OPML["OPML Stream<br/>(pw.io.python.read)"]
-        NewsData["NewsData Stream"]
-        Social["Social Stream"]
+        OPML["OPML Stream<br/>(pw.io.fs.read)"]
+        HTTP["HTTP API Stream<br/>(pw.io.http.read)"]
+        Custom["Custom Feed<br/>(pw.io.python.read)"]
     end
 
     subgraph Core ["Pathway ETL Engine"]
         direction TB
-        Dedup[Incremental Dedup]
-        Window[Sliding Windows]
-        Vector[Live Vector Index]
+        Dedup["pw.io.deduplicate"]
+        Window["pw.temporal.sliding"]
+        Vector["KNN Index"]
     end
 
-    subgraph AI ["LLM xPack"]
+    subgraph AI ["LLM xPack (pw.xpacks.llm)"]
         direction TB
-        RAG[Real-Time RAG]
-        Gen[Gemini 1.5 Generated]
+        RAG["pw.xpacks.llm.retrievers"]
+        Gen[Gemini 1.5]
     end
 
     Inputs -->|Stream| Core
