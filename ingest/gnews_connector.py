@@ -51,11 +51,17 @@ class GNewsConnector:
                             seen_urls.add(url)
                             count += 1
                             
+                            pub_date = article.get("publishedAt")
+                            if not pub_date:
+                                # Fallback to strict ISO format for now
+                                import datetime
+                                pub_date = datetime.datetime.utcnow().isoformat() + "Z"
+                                
                             yield {
                                 "source": "gnews",
                                 "text": f"{article.get('title', '')}. {article.get('description', '')}",
                                 "url": url,
-                                "created_utc": article.get("publishedAt", ""),
+                                "created_utc": pub_date,
                                 "reliability": "High"
                             }
                     if count > 0:
