@@ -103,6 +103,46 @@ graph LR
     API --> User
 ```
 
+## 🧠 Deep Dive: The Life of a Data Point
+This detailed sequence diagram illustrates exactly how a news item travels from a source to the LLM in milliseconds, highlighting the **Pathway Engine's internal mechanics**.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Internet as "Refreshed Data Source"
+    participant Connector as "Pathway Connector"
+    participant InputTable as "pw.Table (Input)"
+    participant Transform as "Transformation Engine"
+    participant State as "Global Deduplication State"
+    participant Vector as "KNN Vector Index"
+    participant User as "User Query"
+    participant RAG as "RAG Retriever"
+
+    Note over Internet, Connector: T+0ms: News Published
+    Internet->>Connector: Poll/Stream New Item
+    Connector->>InputTable: Append Row (JSON)
+    
+    Note over InputTable, Transform: STREAMING MODE
+    InputTable->>Transform: Propagate Update (New Row)
+    
+    Transform->>State: Check Existence (URL/Title Hash)
+    alt Is Duplicate?
+        State-->>Transform: TRUE (Ignore)
+    else Is New?
+        State-->>Transform: FALSE (Process)
+        Transform->>Transform: Text Normalization & Cleaning
+        Transform->>Transform: Compute Embeddings (Gemini)
+        Transform->>Vector: UPSERT Vector
+    end
+    
+    Note over Vector, User: T+200ms: Ready for Query
+    
+    User->>RAG: "What just happened?"
+    RAG->>Vector: KNN Search (k=5)
+    Vector-->>RAG: Return Top Matches
+    RAG->>User: Generate Answer with Context
+```
+
 ---
 
 ## Installation & Usage
