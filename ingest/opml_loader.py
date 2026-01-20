@@ -131,24 +131,21 @@ class OPMLIngestor:
                                 # print(f"⚠️ Skipping article with no date: {entry.get('title', 'Unknown')}")
                                 continue
                             
-                            # === FRESHNESS FILTER: Only yield articles < 6 hours old ===
-                            # REDUCED from 24h to 6h to ensure continuous fresh content
-                            try:
-                                from datetime import datetime, timezone
-                                # Parse the pub_date
-                                if 'T' in pub_date:
-                                    article_time = datetime.fromisoformat(pub_date.replace('Z', '+00:00'))
-                                else:
-                                    article_time = datetime.now(timezone.utc)
-                                
-                                age_hours = (datetime.now(timezone.utc) - article_time).total_seconds() / 3600
-                                
-                                # STRICT FRESHNESS: Skip articles older than 6 hours
-                                if age_hours > 6:
-                                    # print(f"⚠️ Skipping old article ({age_hours:.1f}h): {entry.get('title', 'Unknown')}")
-                                    continue
-                            except:
-                                pass  # If date parsing fails, include the article
+                            # === FRESHNESS FILTER DISABLED ===
+                            # Frontend handles time filtering with 1h strict filter
+                            # Backend ingests ALL articles for maximum coverage
+                            # try:
+                            #     from datetime import datetime, timezone
+                            #     if 'T' in pub_date:
+                            #         article_time = datetime.fromisoformat(pub_date.replace('Z', '+00:00'))
+                            #     else:
+                            #         article_time = datetime.now(timezone.utc)
+                            #     age_hours = (datetime.now(timezone.utc) - article_time).total_seconds() / 3600
+                            #     if age_hours > 6:
+                            #         continue
+                            # except:
+                            #     pass
+                            
                             
                             self.seen_entries.add(entry.link)
                             items_yielded += 1
