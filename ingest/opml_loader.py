@@ -127,8 +127,9 @@ class OPMLIngestor:
                             elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
                                 pub_date = time.strftime('%Y-%m-%dT%H:%M:%SZ', entry.updated_parsed)
                             else:
-                                # No date = use current time
-                                pub_date = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                                # No date found = SKIP this article (don't fake it as "now")
+                                # print(f"⚠️ Skipping article with no date: {entry.get('title', 'Unknown')}")
+                                continue
                             
                             # === FRESHNESS FILTER: Only yield articles < 24 hours old ===
                             try:
