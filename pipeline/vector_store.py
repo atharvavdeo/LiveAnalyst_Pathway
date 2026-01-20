@@ -7,7 +7,8 @@ import threading
 try:
     import chromadb
     from chromadb.config import Settings
-    CHROMA_AVAILABLE = True
+    # FORCE DISABLE TEMPORARILY TO FIX MUTEX ERROR
+    CHROMA_AVAILABLE = False # True
 except ImportError:
     CHROMA_AVAILABLE = False
     print("⚠️ ChromaDB not installed. Vector search disabled.")
