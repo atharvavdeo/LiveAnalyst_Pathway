@@ -59,13 +59,6 @@ class OPMLIngestor:
             except Exception as e:
                 print(f"❌ Failed to fetch OPML {url}: {e}")
         print(f"✅ Loaded {len(self.feed_urls)} active feeds from OPML.")
-        
-        # INJECT FIREHOSE FEEDS
-        count_before = len(self.feed_urls)
-        for url, cat in DIRECT_RSS_FEEDS:
-            self.feed_urls.add((url, cat))
-        print(f"🔥 Injected {len(self.feed_urls) - count_before} High-Frequency Firehose Feeds.")
-        print(f"🚀 Total Active Feeds: {len(self.feed_urls)}")
 
     def manual_refresh(self):
         """Trigger an immediate restart of the fetching loop with BURST SPEED."""
@@ -94,19 +87,9 @@ class OPMLIngestor:
         print(f"🚀 OPML: Starting to parse {len(self.feed_urls)} RSS feeds...")
         
         while True:
-            # 1. Convert to list
-            all_feeds = list(self.feed_urls)
-            
-            # 2. Separate Firehose from the rest
-            firehose = [f for f in all_feeds if any(d[0] == f[0] for d in DIRECT_RSS_FEEDS)]
-            others = [f for f in all_feeds if f not in firehose]
-            
-            # 3. Shuffle others to keep variety
-            random.shuffle(others)
-            
-            # 4. PREPEND Firehose to ensure they are scanned FIRST
-            feeds = firehose + others
-            
+            # Convert to list and shuffle to avoid hammering one server
+            feeds = list(self.feed_urls)
+            random.shuffle(feeds)
             items_yielded = 0
             
             # Reset flag at start of cycle
@@ -233,20 +216,6 @@ DEFAULT_OPML_URLS = [
     "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/with_category/Entertainment.opml",
     "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/recommended/without_category/Tech.opml",
     "https://raw.githubusercontent.com/plenaryapp/awesome-rss-feeds/master/feeds.opml", # THE BIG ONE (All Feeds)
-]
-
-# HIGH FREQUENCY FIREHOSE (Manual Injection)
-DIRECT_RSS_FEEDS = [
-    ("http://feeds.bbci.co.uk/news/rss.xml", "Global"),
-    ("http://rss.cnn.com/rss/cnn_topstories.rss", "Global"),
-    ("https://www.theverge.com/rss/index.xml", "Tech"),
-    ("https://techcrunch.com/feed/", "Tech"),
-    ("https://www.wired.com/feed/rss", "Tech"),
-    ("https://feeds.npr.org/1001/rss.xml", "News"),
-    ("http://feeds.reuters.com/reuters/topNews", "News"),
-    ("https://www.nytimes.com/services/xml/rss/nyt/HomePage.xml", "News"),
-    ("https://api.quartz.com/feed", "Business"),
-    ("https://rss.nytimes.com/services/xml/rss/nyt/Business.xml", "Business"),
 ]
 
 
