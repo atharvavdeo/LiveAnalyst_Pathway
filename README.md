@@ -90,25 +90,29 @@ graph LR
 
 This subsystem ensures that the platform has access to a massive, uncensored stream of global information by processing **thousands of global RSS feeds** in real-time.
 
+## 📸 App Previews
+<div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+    <img src="preview_landing.png" width="30%" alt="Live Dashboard" style="border-radius:8px; border:1px solid #333;" />
+    <img src="preview_search.png" width="30%" alt="RAG Search" style="border-radius:8px; border:1px solid #333;" />
+    <img src="preview_arch.png" width="30%" alt="Architecture" style="border-radius:8px; border:1px solid #333;" />
+</div>
+
 ## 🛠️ Integrated Pathway Technologies
 
-This project strictly adheres to the **Pathway Live Data Framework**, leveraging its core components for real-time ingestion, transformation, and reasoning.
+This project utilizes specific **Pathway APIs** to achieve millisecond-latency streaming.
 
-### 1. Live Data Ingestion with Pathway Connectors
-We utilize **Pathway's Custom Python Connectors**  to ingest streaming data from diverse sources that don't have native adapters.
-*   **Custom OPML Connector**: An extended `pw.io.python.read` connector that continuously scans 1000+ RSS feeds, normalizing XML into a unified schema in real-time.
-*   **Social Stream Connectors**: Custom connectors for **Twitter/X**, **HackerNews**, and **NewsData.io**, treating API endpoints as infinite streaming tables.
+### 1. Unified Data Ingestion (`pw.io`)
+We don't use batch scraping. We use **Pathway Connectors** to turn APIs into streaming tables:
+*   **RSS/OPML Stream**: Implemented using `pw.io.python.read` to wrap our asyncio-based OPML fetcher as a continuous Table stream.
+*   **API Streams**: Twitter/X and NewsData.io are ingested via custom connectors extending Pathway's input schema.
 
-### 2. Streaming Transformations & Windows
-All data processing is performed in **streaming mode** using Pathway's table operations:
-*   **Incremental Deduplication**: Using `pw.io.deduplicate` to identify and merge identical stories from different sources (e.g., Reuters vs. AP coverage of the same event).
-*   **Temporal Windows**: We employ **Sliding Windows** to group articles by events, enabling the system to detect "breaking news clusters" effectively.
-*   **Real-Time Feature Engineering**: Signals like "virality score" are computed on-the-fly as data flows through the pipeline.
+### 2. Live Transformations (`pw.temporal` & `pw.state`)
+*   **Incremental Deduplication**: We use `pw.io.deduplicate(pathway.table)` to merge identical stories (by title/content similarity) arriving from different feeds in real-time.
+*   **Sliding Window Aggregation**: `pw.temporal.sliding` is used to group news items by 5-minute windows to detect sudden "virality spikes" across multiple sources.
 
-### 3. LLM Integration (LLM xPack)
-We integrate **Pathway's LLM xPack** for the RAG pipeline:
-*   **Live Retrieval**: Connecting the live vector index directly to the generation model.
-*   **Reasoning**: The system doesn't just retrieve; it *reasons* over the latest 5-minute window to answer "Why is this happening now?"
+### 3. Real-Time RAG (`pw.xpacks.llm`)
+*   **Vector Indexing**: Incoming text is embedded using `pw.xpacks.llm.embedders` (Gemini/HuggingFace) and indexed in a live KNN index.
+*   **Context Retrieval**: queries are executed against this live index using `pw.xpacks.llm.retrievers`, ensuring the context includes data from *milliseconds ago*.
 
 ---
 
