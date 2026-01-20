@@ -41,13 +41,33 @@ graph LR
 
     subgraph Inputs ["Data Ingestion Streams"]
         direction TB
-        Firehose[Firehose RSS (CNN/BBC)]
-        OPML[Massive OPML Feeds]
+        OPML["34 OPML Categories<br/>1000+ RSS Feeds"]
         GNews[GNews API]
-        Social[Reddit/HN]
+        Social[HackerNews]
     end
 
     subgraph Core ["Pathway ETL Engine"]
+        direction TB
+        Stream[Stream Connectors]
+        Dedup[Deduplication]
+        DB[(SQLite Archive)]
+    end
+
+    subgraph AI ["RAG Pipeline"]
+        direction TB
+        Retrieval[Vector Search]
+        LLM["Gemini 1.5 Flash<br/>Groq Fallback"]
+    end
+
+    Inputs --> Stream
+    Stream --> Dedup
+    Dedup --> DB
+    User --> API
+    API --> Core
+    Core --> AI
+    AI --> API
+    API --> User
+```
         Buffer[(Live Stream Buffer)]
         Burst[Burst Mode Controller]
     end
