@@ -137,28 +137,10 @@ class OPMLIngestor:
                                 continue
                             
                             
-                            # === STRICT 6-HOUR FRESHNESS FILTER ===
-                            # Only yield articles published in last 6 hours (RSS has 15-60min lag)
-                            try:
-                                from datetime import datetime, timezone
-                                if 'T' in pub_date:
-                                    article_time = datetime.fromisoformat(pub_date.replace('Z', '+00:00'))
-                                else:
-                                    # Unparseable date - skip
-                                    continue
-                                
-                                age_hours = (datetime.now(timezone.utc) - article_time).total_seconds() / 3600
-                                
-                                # STRICT: Skip articles older than 6 hours
-                                if age_hours > 6:
-                                    continue
-                                    
-                                # Skip future dates (bad data)
-                                if age_hours < 0:
-                                    continue
-                            except:
-                                # Date parsing failed - skip this article
-                                continue
+                            # === FRESHNESS FILTER DISABLED ===
+                            # RSS feeds update slowly (15-60min). Strict time filters result in 0 new articles.
+                            # Let frontend handle sorting/filtering instead.
+                            # Backend yields ALL recent articles for maximum coverage.
                             
                             
                             self.seen_entries.add(entry.link)
