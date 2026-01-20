@@ -1985,13 +1985,24 @@
                 ...(data.newsdata || [])
             ];
 
-            // ULTRA-STRICT FRESHNESS: Only Show < 30 MINUTES
+            // ULTRA-STRICT FRESHNESS: Only Show < 30 MINUTES, reject future dates
             const THIRTY_MIN_MS = 30 * 60 * 1000;
             const now = Date.now();
             const freshPulse = allSources.filter(item => {
                 if (!item.created_utc) return false;
-                const age = now - new Date(item.created_utc).getTime();
-                return age >= 0 && age < THIRTY_MIN_MS;
+
+                const itemTime = new Date(item.created_utc).getTime();
+                if (isNaN(itemTime)) return false; // Invalid date
+
+                const age = now - itemTime;
+
+                // Reject if more than 1 min in future (clock skew tolerance)
+                if (age < -60000) return false;
+
+                // Reject if older than 30 minutes
+                if (age > THIRTY_MIN_MS) return false;
+
+                return true;
             });
 
             // Sort: Newest First
