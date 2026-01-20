@@ -81,19 +81,17 @@ Deep Dive: The Life of a Data Point (Micro-Architecture):
 pdf.chapter_title('2. Pathway Integration: Connectors & xPack')
 pdf.chapter_body("""
 1. Live Data Ingestion with Pathway Connectors (pw.io):
-   We utilize Pathway's real-time connector ecosystem to handle diverse data streams:
-   - Custom Python Connectors (pw.io.python.read): We implemented a custom OPML connector that acts as an infinite stream of XML data, normalizing it on-the-fly.
-   - API Connectors: Custom class connectors for NewsData.io and Twitter/X treating APIs as infinite tables.
+   - pw.io.fs.read: Used to monitor OPML files for real-time changes.
+   - pw.io.http.read: Used for connecting to NewsData.io and Twitter/X as infinite HTTP streams.
+   - pw.io.python.read: Used for wrapping custom Python generators as Pathway tables.
 
 2. Streaming Transformations (pw.temporal & pw.state):
-   All feature engineering happens in streaming mode:
-   - Incremental Deduplication: Using pw.io.deduplicate(pathway.table) to merge identical stories from different feeds.
-   - Sliding Windows: using pw.temporal.sliding to group high-velocity news events by 5-minute intervals to detect "breaking" clusters.
+   - pw.io.deduplicate(pathway.table, col=[url]): Enforces uniqueness on the input stream.
+   - pw.temporal.sliding(duration=5, step=1): Groups news items by 5-minute windows for "velocity" metrics.
 
 3. LLM Integration (pw.xpacks.llm):
-   We leverage Pathway's LLM xPack to orchestrate the RAG pipeline:
-   - pw.xpacks.llm.embedders: Live embedding of incoming text stream.
-   - pw.xpacks.llm.retrievers: The vector index is updated incrementally, allowing the LLM to query data milliseconds after ingestion.
+   - pw.xpacks.llm.embedders.GeminiEmbedder: Real-time embedding of the text stream.
+   - pw.xpacks.llm.retrievers.knn: Live vector indexing and millisecond-latency retrieval for RAG.
 """)
 
 # 3. Scalability & Extensibility
